@@ -1,0 +1,185 @@
+:root {
+    --paper: #f2f4f7;
+    --surface: #ffffff;
+    --ink: #16233b;
+    --muted: #556075;
+    --line: #d3d9e2;
+
+    --ok: #17794f;
+    --warn: #96650a;
+    --down: #b42318;
+    --checking: #556075;
+
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 1rem;
+    line-height: 1.55;
+}
+
+.page {
+    max-width: 44rem;
+    margin: 0 auto;
+    padding: clamp(2rem, 8vw, 5rem) 1.5rem 3rem;
+}
+
+/* ---------- Title ---------- */
+.masthead h1 {
+    margin: 0 0 1rem;
+    font-family: var(--serif);
+    font-weight: 700;
+    font-size: clamp(2.1rem, 6vw, 3.4rem);
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+}
+
+.lede {
+    max-width: 34rem;
+    margin: 0;
+    color: var(--muted);
+    font-size: 1.125rem;
+}
+
+/* ---------- Status panel ----------
+   The coloured bar on the left edge shows the current state. */
+.status-panel {
+    --state: var(--checking);
+    margin-top: clamp(2.5rem, 8vw, 4rem);
+    padding: 1.5rem 1.5rem 1.5rem 1.75rem;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 6px solid var(--state);
+    border-radius: 4px;
+}
+
+.status-panel[data-state="ok"]       { --state: var(--ok); }
+.status-panel[data-state="degraded"] { --state: var(--warn); }
+.status-panel[data-state="down"]     { --state: var(--down); }
+
+.status-panel h2 {
+    margin: 0 0 0.75rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--muted);
+}
+
+.status-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.status-row p {
+    margin: 0;
+    font-size: 1.375rem;
+    font-weight: 600;
+    color: var(--state);
+}
+
+.dot {
+    flex: none;
+    width: 0.875rem;
+    height: 0.875rem;
+    border-radius: 50%;
+    background: var(--state);
+}
+
+/* Pulse only while a check is running. */
+.status-panel[data-state="checking"] .dot {
+    animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    50% { opacity: 0.3; }
+}
+
+/* ---------- Details ---------- */
+.details {
+    display: grid;
+    gap: 0.5rem;
+    margin: 1.25rem 0 0;
+}
+
+.details div {
+    display: grid;
+    grid-template-columns: 8rem 1fr;
+    gap: 1rem;
+}
+
+.details dt {
+    color: var(--muted);
+}
+
+.details dd {
+    margin: 0;
+    font-weight: 500;
+}
+
+.help {
+    margin: 1rem 0 0;
+    max-width: 36rem;
+    color: var(--ink);
+}
+
+/* ---------- Button ---------- */
+button {
+    margin-top: 1.5rem;
+    padding: 0.65rem 1.1rem;
+    border: 0;
+    border-radius: 4px;
+    background: var(--ink);
+    color: #ffffff;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+    background: #24365a;
+}
+
+button:disabled {
+    opacity: 0.55;
+    cursor: progress;
+}
+
+button:focus-visible {
+    outline: 3px solid #2f6fed;
+    outline-offset: 3px;
+}
+
+/* ---------- Footer ---------- */
+.footnote {
+    margin-top: 3rem;
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
+.footnote p {
+    margin: 0;
+}
+
+@media (max-width: 30rem) {
+    .details div {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .status-panel[data-state="checking"] .dot {
+        animation: none;
+    }
+}

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Account Takeover Containment and Recovery Service</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <main class="page">
+        <header class="masthead">
+            <h1>Account Takeover Containment and Recovery Service</h1>
+            <p class="lede">Helps small SaaS teams contain a hijacked account and get the owner back in.</p>
+        </header>
+
+        <section id="status-panel" class="status-panel" data-state="checking" aria-labelledby="status-heading">
+            <h2 id="status-heading">Backend status</h2>
+
+            <div class="status-row">
+                <span class="dot" aria-hidden="true"></span>
+                <p id="status-text" role="status" aria-live="polite">Checking the backend…</p>
+            </div>
+
+            <dl id="status-details" class="details" hidden>
+                <div>
+                    <dt>Service</dt>
+                    <dd id="detail-service"></dd>
+                </div>
+                <div>
+                    <dt>Database</dt>
+                    <dd id="detail-database"></dd>
+                </div>
+                <div>
+                    <dt>Last checked</dt>
+                    <dd id="detail-time"></dd>
+                </div>
+            </dl>
+
+            <p id="status-help" class="help" hidden></p>
+
+            <button id="check-button" type="button">Check backend again</button>
+        </section>
+
+        <footer class="footnote">
+            <p>Phase 1: project setup. Sign-in, detection and recovery come in later phases.</p>
+        </footer>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
