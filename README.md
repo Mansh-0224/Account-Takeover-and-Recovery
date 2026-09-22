@@ -2,19 +2,29 @@
 
 **Account Takeover Containment and Recovery Service for Small SaaS Applications** (internship project).
 
-**Phase 1 (this version):** project skeleton, PostgreSQL connection, and a health check.
-No authentication, detection, containment, recovery, or AWS yet.
+- **Phase 0 — Planning & Design:** done. See [`docs/`](docs/) for actors, architecture, module list,
+  database design, API list, ATO workflow and threat scenarios.
+- **Phase 1 — Local Development Environment (this version):** backend, frontend and PostgreSQL running
+  locally, connected through a health check, with logging and Postman-based API testing set up.
+  No authentication, detection, containment, recovery, or AWS yet — those are Phase 2 onward
+  (see the roadmap in [`docs/README.md`](docs/README.md)).
 
 ```text
 ato-containment-service/
+├── docs/        Phase 0 design documents (architecture, DB design, API list, workflow, threats)
 ├── backend/     Spring Boot (Java 17, Maven) REST API
 ├── frontend/    Plain HTML/CSS/JavaScript page
-├── database/    SQL setup script for local PostgreSQL
-├── tests/       Smoke test script
+├── database/    Local setup script + draft schema for later phases
+├── tests/       Smoke test script + Postman collection
 ├── terraform/   Reserved for AWS (later)
+├── .env.example Example environment variables
 ├── README.md
 └── .gitignore
 ```
+
+Backend packages already scaffolded for later phases (currently near-empty): `risk/`, `incident/`,
+`recovery/`, `logging/`, `security/`, alongside the active `controller/`, `service/`, `repository/`,
+`model/`, `config/`, `exception/`.
 
 ## 1. Prerequisites
 
@@ -82,3 +92,26 @@ Expected response:
 - Or run the smoke test: `./tests/health-check.sh`
 
 On Windows PowerShell use `curl.exe` instead of `curl`.
+
+## 6. Test with Postman
+
+1. Open Postman → **Import** → select both files in `tests/postman/`:
+   `ato-containment.postman_collection.json` and `ato-local.postman_environment.json`.
+2. Select the **ATO Local** environment (top-right dropdown) — it sets `baseUrl` to `http://localhost:8080`.
+3. With the backend running, open the **Health** folder and click **Send** on each request, or run the whole
+   collection with **Run**. Both requests include automated checks (status code, response fields).
+
+New endpoints from later phases should be added to this same collection.
+
+## 7. Logging
+
+Requests are logged to the console and to `backend/logs/ato-containment.log` (one line per request: method,
+path, status, duration). Log levels are set in `application.properties`
+(`logging.level.com.ato.containment=DEBUG`). Passwords, tokens and headers are never logged — see
+`docs/06-threat-scenarios.md` (TS-8) for why that matters.
+
+## 8. Design documents
+
+Before touching later-phase code, read [`docs/README.md`](docs/README.md) — it links the full Phase 0 design:
+actors, architecture, the module list, database design, the planned API surface, the ATO detection/containment/
+recovery workflow, and the threat scenarios those features are meant to stop.
