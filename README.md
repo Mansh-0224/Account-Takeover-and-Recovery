@@ -2,29 +2,64 @@
 
 **Account Takeover Containment and Recovery Service for Small SaaS Applications** (internship project).
 
-- **Phase 0 — Planning & Design:** done. See [`docs/`](docs/) for actors, architecture, module list,
-  database design, API list, ATO workflow and threat scenarios.
-- **Phase 1 — Local Development Environment (this version):** backend, frontend and PostgreSQL running
-  locally, connected through a health check, with logging and Postman-based API testing set up.
-  No authentication, detection, containment, recovery, or AWS yet — those are Phase 2 onward
-  (see the roadmap in [`docs/README.md`](docs/README.md)).
+## Purpose
+
+Small SaaS companies rarely have a dedicated security team. When a customer account is hijacked, they
+have no fast way to notice it, stop the damage, or safely hand the account back to its real owner. This
+service is meant to:
+
+1. **Detect** suspicious logins and stolen-token use.
+2. **Contain** a compromised account (lock it, kill its sessions) so an attacker loses access quickly.
+3. **Recover** the account by verifying the real owner and restoring access.
+4. **Record** everything in a tenant-separated audit trail.
+
+The full design — actors, architecture, module list, database design, API list, the detection/containment/
+recovery workflow, and threat scenarios — is written up in [`docs/`](docs/), starting with
+[`docs/README.md`](docs/README.md).
+
+## Current state
+
+Right now the project has a working skeleton: a Spring Boot backend connected to PostgreSQL, a small
+frontend that checks the backend's health, logging, and Postman-based API testing. Authentication,
+risk detection, containment, recovery, and AWS integration are designed in `docs/` but not implemented yet.
+
+## Structure
 
 ```text
 ato-containment-service/
-├── docs/        Phase 0 design documents (architecture, DB design, API list, workflow, threats)
+├── docs/        Design documents (architecture, DB design, API list, workflow, threats)
 ├── backend/     Spring Boot (Java 17, Maven) REST API
 ├── frontend/    Plain HTML/CSS/JavaScript page
-├── database/    Local setup script + draft schema for later phases
+├── database/    Local setup script + draft schema for upcoming features
 ├── tests/       Smoke test script + Postman collection
-├── terraform/   Reserved for AWS (later)
+├── terraform/   Reserved for AWS infrastructure (later)
 ├── .env.example Example environment variables
 ├── README.md
 └── .gitignore
 ```
 
-Backend packages already scaffolded for later phases (currently near-empty): `risk/`, `incident/`,
+Backend packages already scaffolded for upcoming work (currently near-empty): `risk/`, `incident/`,
 `recovery/`, `logging/`, `security/`, alongside the active `controller/`, `service/`, `repository/`,
 `model/`, `config/`, `exception/`.
+
+## Tech stack
+
+**In use now**
+- Backend: Java 17, Spring Boot, Maven, Spring Web, Spring Data JPA
+- Database: PostgreSQL
+- Frontend: plain HTML, CSS, JavaScript (no framework)
+- API: REST (JSON), tested with Postman and a shell smoke-test script
+- Logging: SLF4J + a request-logging filter, output to console and file
+
+**Planned**
+- Spring Security with JWT access tokens and rotating refresh tokens, for authentication and session management
+- A rule-based risk-scoring engine for login and token-replay detection
+- Incident management, account containment, and account recovery (email OTP and admin-assisted) modules
+- Tenant isolation enforced at the query and schema level, with dedicated tests
+- An append-only security audit log
+- AWS deployment via Terraform (ECS/Fargate or Elastic Beanstalk, RDS for PostgreSQL, S3/CloudFront for the
+  frontend, SES for email, CloudWatch for logs, Secrets Manager for secrets) — see the AWS mapping table in
+  [`docs/02-architecture-and-modules.md`](docs/02-architecture-and-modules.md)
 
 ## 1. Prerequisites
 
@@ -101,7 +136,7 @@ On Windows PowerShell use `curl.exe` instead of `curl`.
 3. With the backend running, open the **Health** folder and click **Send** on each request, or run the whole
    collection with **Run**. Both requests include automated checks (status code, response fields).
 
-New endpoints from later phases should be added to this same collection.
+New endpoints should be added to this same collection as they're built.
 
 ## 7. Logging
 
@@ -112,6 +147,6 @@ path, status, duration). Log levels are set in `application.properties`
 
 ## 8. Design documents
 
-Before touching later-phase code, read [`docs/README.md`](docs/README.md) — it links the full Phase 0 design:
-actors, architecture, the module list, database design, the planned API surface, the ATO detection/containment/
+Before adding new features, read [`docs/README.md`](docs/README.md) — it links the full design: actors,
+architecture, the module list, database design, the planned API surface, the ATO detection/containment/
 recovery workflow, and the threat scenarios those features are meant to stop.

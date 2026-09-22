@@ -15,13 +15,13 @@
 
 ## 2. Endpoint list
 
-Only `GET /api/health` (Phase 1) is implemented today. Everything else is the Phase 2+ plan.
+Only `GET /api/health` is implemented today. Everything else below is the planned design.
 
 ### Health — implemented
 
 | Method | Path | Auth | Description |
 |---|---|---|---|
-| GET | `/api/health` | none | Backend and database status (done in Phase 1) |
+| GET | `/api/health` | none | Backend and database status (implemented) |
 
 ### Authentication — Module 1
 

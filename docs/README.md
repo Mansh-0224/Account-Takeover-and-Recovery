@@ -1,4 +1,4 @@
-# Design Documentation (Phase 0)
+# Design Documentation
 
 Design for the **Account Takeover (ATO) Containment and Recovery Service for Small SaaS Applications**.
 Diagrams use [Mermaid](https://mermaid.js.org/); they render on GitHub and in the VS Code Markdown preview
