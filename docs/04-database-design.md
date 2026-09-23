@@ -1,6 +1,6 @@
 # 04. Basic Database Design
 
-PostgreSQL. The full draft DDL is in [`database/schema_draft.sql`](../database/schema_draft.sql).
+MySQL. The full draft DDL is in [`database/schema_draft.sql`](../database/schema_draft.sql).
 It is a **design draft and is not run by the application yet**. In Phase 2 it will become JPA entities and/or
 migration scripts (for example Flyway).
 
@@ -35,12 +35,12 @@ erDiagram
 | `sessions` | One per successful login | `user_id`, `device_hash`, `ip_address`, `country`, `status`, `expires_at`, `revoked_reason` |
 | `refresh_tokens` | Rotating refresh tokens (hash only) | `session_id`, `token_hash`, `parent_token_id`, `used_at`, `expires_at` |
 | `login_events` | Every login attempt, successful or not; the history for risk rules | `email_attempted`, `success`, `ip_address`, `country`, `device_hash`, `failure_reason` |
-| `risk_assessments` | Result of scoring, with explanation | `score`, `risk_level`, `signals` (JSONB), `decision` |
+| `risk_assessments` | Result of scoring, with explanation | `score`, `risk_level`, `signals` (JSON), `decision` |
 | `step_up_challenges` | Pending OTP checks for suspicious logins | `risk_assessment_id`, `otp_hash`, `attempts`, `status`, `expires_at` |
 | `incidents` | Security incidents | `user_id`, `incident_type`, `severity`, `status`, `risk_score`, timestamps |
 | `containment_actions` | What was done to contain, and whether it was reverted | `incident_id`, `action_type`, `performed_by_type`, `reverted_at` |
 | `recovery_requests` | Account recovery attempts | `user_id`, `incident_id`, `method`, `token_hash`, `status`, `failed_attempts`, `expires_at` |
-| `audit_logs` | Append-only security trail | `tenant_id`, `actor_type`, `action`, `target_id`, `incident_id`, `details` (JSONB) |
+| `audit_logs` | Append-only security trail | `tenant_id`, `actor_type`, `action`, `target_id`, `incident_id`, `details` (JSON) |
 | `notifications` | Simulated outgoing email (dev outbox) | `user_id`, `purpose`, `subject`, `body` |
 
 ## 3. Design rules
@@ -48,10 +48,11 @@ erDiagram
 1. **Tenant isolation:** every table except `tenants` has `tenant_id`. Tables that point to a user use a
    composite foreign key `(tenant_id, user_id) -> users (tenant_id, id)`, so the database itself refuses a row
    that mixes tenants.
-2. **UUID primary keys** (except `audit_logs`, which uses a sequence) so ids cannot be guessed or counted.
+2. **UUID primary keys** (except `audit_logs`, which uses an auto-increment column) so ids cannot be guessed or counted.
 3. **No secrets stored:** passwords use BCrypt; refresh tokens, OTPs and recovery tokens are stored as hashes.
-4. **Enums are `VARCHAR` with `CHECK` constraints**, which is easier to use from JPA than native PostgreSQL enums.
-5. **Timestamps** are `TIMESTAMPTZ` (UTC).
+4. **Enums are `VARCHAR` with `CHECK` constraints** (MySQL 8.0.16+), which maps more predictably to JPA than a native `ENUM` column.
+5. **Timestamps** are `TIMESTAMP` (UTC), since MySQL's `TIMESTAMP`/`DATETIME` types have no built-in offset —
+   the application is responsible for always writing and reading UTC.
 6. **Emails** are stored lower-case and are unique per tenant, not globally.
 7. **Audit log is append-only:** the application role should get `INSERT` and `SELECT` only on `audit_logs`
    (enforced when roles are set up in a later phase).

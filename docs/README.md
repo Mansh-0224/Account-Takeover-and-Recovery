@@ -32,7 +32,7 @@ This is a suggestion. Adjust it to your mentor's plan.
 | Phase | Deliverable |
 |---|---|
 | 0 | Design documents (this folder) |
-| 1 | Local environment: backend, frontend, PostgreSQL, health check |
+| 1 | Local environment: backend, frontend, MySQL, health check |
 | 2 | Tenants, users, authentication (register/login, BCrypt, JWT) |
 | 3 | Session management and refresh tokens |
 | 4 | Risk scoring / ATO detection on login |

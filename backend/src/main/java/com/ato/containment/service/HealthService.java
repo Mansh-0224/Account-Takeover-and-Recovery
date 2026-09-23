@@ -12,7 +12,7 @@ import java.sql.SQLException;
 import java.time.Instant;
 
 /**
- * Checks that the application is running and that PostgreSQL is reachable.
+ * Checks that the application is running and that MySQL is reachable.
  */
 @Service
 public class HealthService {

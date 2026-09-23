@@ -19,7 +19,7 @@ recovery workflow, and threat scenarios — is written up in [`docs/`](docs/), s
 
 ## Current state
 
-Right now the project has a working skeleton: a Spring Boot backend connected to PostgreSQL, a small
+Right now the project has a working skeleton: a Spring Boot backend connected to MySQL, a small
 frontend that checks the backend's health, logging, and Postman-based API testing. Authentication,
 risk detection, containment, recovery, and AWS integration are designed in `docs/` but not implemented yet.
 
@@ -46,7 +46,7 @@ Backend packages already scaffolded for upcoming work (currently near-empty): `r
 
 **In use now**
 - Backend: Java 17, Spring Boot, Maven, Spring Web, Spring Data JPA
-- Database: PostgreSQL
+- Database: MySQL
 - Frontend: plain HTML, CSS, JavaScript (no framework)
 - API: REST (JSON), tested with Postman and a shell smoke-test script
 - Logging: SLF4J + a request-logging filter, output to console and file
@@ -57,7 +57,7 @@ Backend packages already scaffolded for upcoming work (currently near-empty): `r
 - Incident management, account containment, and account recovery (email OTP and admin-assisted) modules
 - Tenant isolation enforced at the query and schema level, with dedicated tests
 - An append-only security audit log
-- AWS deployment via Terraform (ECS/Fargate or Elastic Beanstalk, RDS for PostgreSQL, S3/CloudFront for the
+- AWS deployment via Terraform (ECS/Fargate or Elastic Beanstalk, RDS for MySQL, S3/CloudFront for the
   frontend, SES for email, CloudWatch for logs, Secrets Manager for secrets) — see the AWS mapping table in
   [`docs/02-architecture-and-modules.md`](docs/02-architecture-and-modules.md)
 
@@ -65,24 +65,24 @@ Backend packages already scaffolded for upcoming work (currently near-empty): `r
 
 - **JDK 17 or newer**: check with `java -version`
 - **Maven 3.9+**: check with `mvn -version`
-- **PostgreSQL 14+**: check with `psql --version`
+- **MySQL 8.0+**: check with `mysql --version`
 - **Python 3** (to serve the frontend) or the VS Code *Live Server* extension
 - A modern browser
 
-## 2. Configure PostgreSQL
+## 2. Configure MySQL
 
-1. Make sure PostgreSQL is running.
-2. From the project root, create the local user and database (enter the `postgres` password when asked):
+1. Make sure MySQL (or MariaDB) is running.
+2. From the project root, create the local database and user (enter your MySQL root password when asked):
 
    ```bash
-   psql -U postgres -f database/init.sql
+   mysql -u root -p < database/init.sql
    ```
 
-   This creates user `ato_user` (password `ato_password`) and database `ato_db`.
+   This creates database `ato_db` and user `ato_user` (password `ato_password`), scoped to `localhost`.
 3. Verify the login works:
 
    ```bash
-   psql -U ato_user -d ato_db -h localhost -c "SELECT 1;"
+   mysql -u ato_user -p ato_db -e "SELECT 1;"
    ```
 
 The backend reads these defaults from `backend/src/main/resources/application.properties`.
@@ -95,7 +95,7 @@ cd backend
 mvn spring-boot:run
 ```
 
-The API starts on **http://localhost:8080**. PostgreSQL must be running first.
+The API starts on **http://localhost:8080**. MySQL must be running first.
 Run the unit test with `mvn test`.
 
 ## 4. Run the frontend
@@ -122,7 +122,7 @@ Expected response:
 {"status":"UP","service":"ato-containment-service","database":"UP","timestamp":"2026-01-01T10:00:00.000Z"}
 ```
 
-- `status: "DEGRADED"` with `database: "DOWN"` means the app runs but cannot reach PostgreSQL.
+- `status: "DEGRADED"` with `database: "DOWN"` means the app runs but cannot reach MySQL.
 - In the browser, the frontend shows a green **Backend is running** status. Click **Check backend again** to re-test.
 - Or run the smoke test: `./tests/health-check.sh`
 

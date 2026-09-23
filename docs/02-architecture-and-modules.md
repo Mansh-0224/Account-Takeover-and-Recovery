@@ -21,7 +21,7 @@ flowchart TB
         F --> C --> S --> R
     end
 
-    DB[("PostgreSQL")]
+    DB[("MySQL")]
 
     U --> FE
     TA --> FE
@@ -101,7 +101,7 @@ someone else has a copy. That is a strong theft signal (see `03-ato-workflow.md`
 | Local | AWS |
 |---|---|
 | Spring Boot jar | ECS Fargate (or Elastic Beanstalk / EC2) |
-| PostgreSQL | Amazon RDS for PostgreSQL |
+| MySQL | Amazon RDS for MySQL |
 | Static frontend | S3 + CloudFront |
 | `notifications` table | Amazon SES |
 | Log files | CloudWatch Logs |
