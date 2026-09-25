@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Account details — Aegis</title>
+<link rel="stylesheet" href="assets/css/shell.css">
+</head>
+<body>
+<div class="app-shell">
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-mark">A</div>
+    <div class="brand-text"><span class="brand-name">Aegis</span><span class="brand-sub">ATO Containment &amp; Recovery</span></div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-group-label">Overview</div>
+    <a href="dashboard.html" class="nav-link">Dashboard</a>
+    <div class="nav-group-label">Accounts</div>
+    <a href="users.html" class="nav-link active">Users &amp; Accounts</a>
+    <a href="sessions.html" class="nav-link">Sessions</a>
+    <div class="nav-group-label">Detection &amp; Response</div>
+    <a href="risk-detection.html" class="nav-link">Risk Detection</a>
+    <a href="incidents.html" class="nav-link">Incidents</a>
+    <a href="containment.html" class="nav-link">Containment</a>
+    <a href="recovery.html" class="nav-link">Recovery</a>
+    <div class="nav-group-label">Compliance</div>
+    <a href="audit-logs.html" class="nav-link">Audit Logs</a>
+  </nav>
+</aside>
+<div class="main-col">
+<header class="topbar">
+  <div>
+    <h1>Account details</h1>
+    <div class="topbar-crumb">Accounts / Users / Details</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:.6rem;">
+    <span class="tenant-tag">All tenants</span>
+    <div class="user-chip">
+      <div class="avatar">SA</div>
+      <span>Security Admin</span>
+    </div>
+    <a href="login.html" class="btn btn-sm">Log out</a>
+  </div>
+</header>
+<main class="content">
+
+<a href="users.html" class="back-link">&larr; Back to users</a>
+
+<div class="detail-header">
+  <div class="detail-avatar">PN</div>
+  <div style="flex:1;min-width:200px;">
+    <div class="detail-name">Priya Nair</div>
+    <div class="detail-email">priya.nair@northwind.io</div>
+  </div>
+  <span class="badge badge-high">CONTAINED</span>
+  <span class="badge badge-high">HIGH RISK</span>
+  <a href="recovery.html" class="btn btn-sm btn-primary">Start recovery</a>
+</div>
+
+<div class="grid grid-2">
+  <div style="display:flex;flex-direction:column;gap:1rem;">
+
+    <div class="card">
+      <div class="card-header"><h2>Risk score</h2><span class="hint">updated 1h ago</span></div>
+      <div class="risk-ring-wrap">
+        <svg width="88" height="88" viewBox="0 0 80 80">
+          <circle cx="40" cy="40" r="34" fill="none" stroke="var(--surface-raised)" stroke-width="8"/>
+          <circle cx="40" cy="40" r="34" fill="none" stroke="var(--high)" stroke-width="8" stroke-linecap="round"
+            stroke-dasharray="213.6" stroke-dashoffset="24.6" transform="rotate(-90 40 40)"/>
+          <text x="40" y="45" text-anchor="middle" font-size="20" font-weight="700" fill="var(--ink)">88</text>
+        </svg>
+        <div>
+          <div class="risk-ring-value" style="color:var(--high)">HIGH</div>
+          <div class="risk-ring-label">Score out of 100 · recalculated on each login</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h2>Risk signals</h2><span class="hint">4 triggered</span></div>
+      <div style="display:flex;flex-direction:column;gap:.55rem;">
+        <div class="signal-chip"><div><div class="signal-title">Impossible travel</div><div class="signal-desc">Two logins from distant locations closer together than travel allows · 1h ago</div></div><div class="signal-points">+40</div></div>
+        <div class="signal-chip"><div><div class="signal-title">Unusual location</div><div class="signal-desc">Login from a country not seen in recent history · 1h ago</div></div><div class="signal-points">+20</div></div>
+        <div class="signal-chip"><div><div class="signal-title">New device</div><div class="signal-desc">Login from a device never seen on this account before · 1h ago</div></div><div class="signal-points">+20</div></div>
+        <div class="signal-chip"><div><div class="signal-title">Multiple failed logins</div><div class="signal-desc">5+ failed sign-in attempts before success · 1h ago</div></div><div class="signal-points">+25</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h2>Login history</h2></div>
+      <div class="table-wrap">
+        <table><thead><tr><th>Result</th><th>Device</th><th>Location</th><th>Time</th></tr></thead>
+        <tbody>
+          <tr><td><span class="badge badge-high">Failed</span></td><td class="cell-muted">Unknown Windows PC</td><td class="cell-muted">Lagos, NG</td><td class="cell-muted">Sep 24, 06:08 AM</td></tr>
+          <tr><td><span class="badge badge-low">Success</span></td><td class="cell-muted">Unknown Windows PC</td><td class="cell-muted">Lagos, NG</td><td class="cell-muted">Sep 24, 06:12 AM</td></tr>
+          <tr><td><span class="badge badge-low">Success</span></td><td class="cell-muted">Known device</td><td class="cell-muted">Lagos, NG</td><td class="cell-muted">Sep 23, 04:12 AM</td></tr>
+        </tbody></table>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:1rem;">
+    <div class="card">
+      <div class="card-header"><h2>Account details</h2></div>
+      <div class="kv-list">
+        <div class="kv-row"><span class="k">Tenant</span><span>Northwind Retail</span></div>
+        <div class="kv-row"><span class="k">Role</span><span>Tenant Admin</span></div>
+        <div class="kv-row"><span class="k">Primary device</span><span>Unknown Windows PC</span></div>
+        <div class="kv-row"><span class="k">Last known location</span><span>Lagos, NG</span></div>
+        <div class="kv-row"><span class="k">Last login</span><span>Sep 24, 06:12 AM</span></div>
+        <div class="kv-row"><span class="k">Account ID</span><span class="mono">u1</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h2>Active sessions</h2><span class="hint">1 active</span></div>
+      <div class="table-wrap">
+        <table><thead><tr><th>Session</th><th>Device</th><th>IP</th><th>Status</th></tr></thead>
+        <tbody><tr><td class="mono cell-primary">s-8841</td><td class="cell-muted">Chrome / Windows</td><td class="mono cell-muted">41.203.72.14</td><td><span class="badge badge-low">ACTIVE</span></td></tr></tbody></table>
+      </div>
+      <a href="sessions.html" class="link-sm" style="display:inline-block;margin-top:.8rem;">Manage all sessions &rarr;</a>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h2>Containment &amp; recovery</h2></div>
+      <p class="text-muted" style="font-size:.82rem;line-height:1.6;margin-bottom:1rem;">This account is currently contained. Sessions are revoked and sign-in is blocked until recovery is completed.</p>
+      <div style="display:flex;gap:.6rem;flex-wrap:wrap;">
+        <a href="containment.html" class="btn btn-sm btn-danger">Go to containment</a>
+        <a href="recovery.html" class="btn btn-sm">Go to recovery</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,216 @@
+/* ============================================================
+   Aegis prototype — shared styles for all dashboard pages
+   This is a STATIC prototype: plain HTML + this CSS, no JavaScript
+   logic. Buttons are just styled <button>/<a> tags for looks —
+   they don't do anything. Links between pages are normal <a href>.
+   ============================================================ */
+
+:root{
+  --canvas:#0A0E17;
+  --surface:#131A28;
+  --surface-raised:#1B2436;
+  --line:#26334A;
+  --line-soft:#1D2739;
+  --ink:#E7ECF5;
+  --muted:#8A97AD;
+  --faint:#5A6780;
+  --accent:#4FD1C5;
+  --accent-ink:#0A0E17;
+  --accent-soft:rgba(79,209,197,.13);
+
+  --low:#34D399;      --low-soft:rgba(52,211,153,.14);
+  --medium:#FBBF24;   --medium-soft:rgba(251,191,36,.14);
+  --high:#F87171;     --high-soft:rgba(248,113,113,.14);
+  --critical:#FB7185; --critical-soft:rgba(251,113,133,.16);
+  --info:#60A5FA;     --info-soft:rgba(96,165,250,.14);
+
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  --mono:"SFMono-Regular",Consolas,"Courier New",monospace;
+
+  --radius:8px;
+  --radius-sm:5px;
+}
+
+*,*::before,*::after{ box-sizing:border-box; }
+body{
+  margin:0; background:var(--canvas); color:var(--ink); font-family:var(--sans);
+  font-size:14px; line-height:1.5;
+}
+a{ color:inherit; }
+h1,h2,h3,h4{ font-weight:700; margin:0; }
+p{ margin:0; }
+button{ font-family:inherit; }
+.mono{ font-family:var(--mono); }
+
+/* ---------- Page shell: sidebar + topbar + content ---------- */
+.app-shell{ display:flex; min-height:100vh; }
+
+.sidebar{
+  flex:none; width:230px; background:var(--surface); border-right:1px solid var(--line);
+  display:flex; flex-direction:column;
+}
+.sidebar-brand{ display:flex; align-items:center; gap:.6rem; padding:1.25rem; }
+.brand-mark{
+  width:30px; height:30px; border-radius:7px; background:linear-gradient(150deg,var(--accent),#2E8F86);
+  display:flex; align-items:center; justify-content:center; flex:none; color:white; font-weight:700;
+}
+.brand-text{ display:flex; flex-direction:column; line-height:1.15; }
+.brand-name{ font-weight:700; font-size:1.05rem; }
+.brand-sub{ font-size:.68rem; color:var(--faint); }
+
+.sidebar-nav{ flex:1; padding:.5rem .75rem; }
+.nav-group-label{ font-size:.68rem; color:var(--faint); text-transform:uppercase; letter-spacing:.06em; margin:1rem .5rem .4rem; }
+.nav-group-label:first-child{ margin-top:.25rem; }
+.nav-link{
+  display:block; padding:.55rem .6rem; border-radius:var(--radius-sm);
+  color:var(--muted); text-decoration:none; font-size:.88rem; margin-bottom:.1rem;
+}
+.nav-link:hover{ background:var(--surface-raised); color:var(--ink); }
+.nav-link.active{ background:var(--accent-soft); color:var(--accent); }
+
+/* ---------- Top bar ---------- */
+.main-col{ flex:1; min-width:0; }
+.topbar{
+  display:flex; align-items:center; justify-content:space-between; gap:1rem;
+  padding:.9rem 1.5rem; border-bottom:1px solid var(--line); background:var(--surface);
+}
+.topbar-crumb{ font-size:.78rem; color:var(--faint); margin-top:.15rem; }
+.tenant-tag{
+  font-size:.76rem; color:var(--muted); background:var(--surface-raised); border:1px solid var(--line);
+  padding:.35rem .65rem; border-radius:99px;
+}
+.user-chip{
+  display:flex; align-items:center; gap:.5rem; padding:.3rem .6rem; border-radius:99px;
+  border:1px solid var(--line); background:var(--surface-raised); font-size:.8rem;
+}
+.avatar{
+  width:26px; height:26px; border-radius:50%; background:var(--accent-soft); color:var(--accent);
+  display:flex; align-items:center; justify-content:center; font-size:.72rem; font-weight:700;
+}
+
+.content{ padding:1.5rem; max-width:1200px; }
+
+/* ---------- Buttons (visual only — not wired to anything) ---------- */
+.btn{
+  display:inline-block; font-size:.83rem; font-weight:600;
+  padding:.55rem .95rem; border-radius:var(--radius-sm); border:1px solid var(--line); cursor:pointer;
+  background:var(--surface-raised); color:var(--ink); text-decoration:none;
+}
+.btn-primary{ background:var(--accent); border-color:var(--accent); color:var(--accent-ink); }
+.btn-danger{ background:var(--high-soft); border-color:rgba(248,113,113,.4); color:var(--high); }
+.btn-sm{ padding:.4rem .7rem; font-size:.78rem; }
+
+/* ---------- Cards ---------- */
+.grid{ display:grid; gap:1rem; }
+.grid-metrics{ grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); }
+.grid-2{ grid-template-columns:2fr 1fr; align-items:start; }
+.grid-2col{ grid-template-columns:1fr 1fr; align-items:start; }
+@media (max-width:900px){ .grid-2, .grid-2col{ grid-template-columns:1fr; } }
+
+.card{
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:1.1rem 1.2rem;
+}
+.card-header{ display:flex; align-items:center; justify-content:space-between; margin-bottom:.9rem; gap:.75rem; }
+.card-header h2{ font-size:.95rem; }
+.hint{ font-size:.76rem; color:var(--faint); }
+
+.metric-card{ border-left:3px solid var(--line); }
+.metric-card.tone-low{ border-left-color:var(--low); }
+.metric-card.tone-medium{ border-left-color:var(--medium); }
+.metric-card.tone-high{ border-left-color:var(--high); }
+.metric-card.tone-info{ border-left-color:var(--info); }
+.metric-card.tone-accent{ border-left-color:var(--accent); }
+.metric-label{ font-size:.76rem; color:var(--muted); margin-bottom:.5rem; }
+.metric-value{ font-size:1.85rem; font-weight:700; }
+.metric-note{ font-size:.74rem; color:var(--faint); margin-top:.4rem; }
+
+/* ---------- Badges ---------- */
+.badge{
+  display:inline-block; font-size:.72rem; font-weight:600;
+  padding:.24rem .55rem; border-radius:99px; text-transform:uppercase; letter-spacing:.03em; white-space:nowrap;
+}
+.badge-low{ background:var(--low-soft); color:var(--low); }
+.badge-medium{ background:var(--medium-soft); color:var(--medium); }
+.badge-high{ background:var(--high-soft); color:var(--high); }
+.badge-critical{ background:var(--critical-soft); color:var(--critical); }
+.badge-info{ background:var(--info-soft); color:var(--info); }
+.badge-neutral{ background:var(--surface-raised); color:var(--muted); border:1px solid var(--line); }
+
+/* ---------- Tables ---------- */
+.table-wrap{ overflow-x:auto; }
+table{ width:100%; border-collapse:collapse; font-size:.85rem; }
+thead th{
+  text-align:left; font-size:.7rem; text-transform:uppercase; letter-spacing:.06em; color:var(--faint);
+  font-weight:600; padding:.55rem .7rem; border-bottom:1px solid var(--line); white-space:nowrap;
+}
+tbody td{ padding:.7rem .7rem; border-bottom:1px solid var(--line-soft); vertical-align:middle; }
+tbody tr:last-child td{ border-bottom:none; }
+.cell-muted{ color:var(--muted); }
+.cell-primary{ color:var(--ink); font-weight:600; }
+
+/* ---------- Filter bar (visual only) ---------- */
+.toolbar{ display:flex; flex-wrap:wrap; gap:.6rem; align-items:center; margin-bottom:1rem; }
+.input, select.input{
+  background:var(--surface-raised); border:1px solid var(--line); color:var(--ink); border-radius:var(--radius-sm);
+  padding:.55rem .75rem; font-size:.83rem; font-family:inherit;
+}
+.search-input{ min-width:220px; flex:1; max-width:320px; }
+
+/* ---------- Timeline ---------- */
+.timeline-item{ display:flex; gap:.8rem; padding-bottom:1.1rem; }
+.timeline-item:last-child{ padding-bottom:0; }
+.timeline-dot{ width:10px; height:10px; border-radius:50%; background:var(--accent); flex:none; margin-top:4px; }
+.timeline-dot.dot-high{ background:var(--high); }
+.timeline-dot.dot-muted{ background:var(--faint); }
+.timeline-text{ font-size:.85rem; }
+.timeline-time{ font-size:.72rem; color:var(--faint); margin-top:.2rem; }
+
+/* ---------- Stepper (recovery / incident status) ---------- */
+.step{ display:flex; gap:.9rem; padding-bottom:1.4rem; }
+.step:last-child{ padding-bottom:0; }
+.step-badge{
+  width:28px; height:28px; border-radius:50%; flex:none; display:flex; align-items:center; justify-content:center;
+  font-size:.78rem; font-weight:700; background:var(--surface-raised); border:1px solid var(--line); color:var(--faint);
+}
+.step.done .step-badge{ background:var(--low-soft); border-color:transparent; color:var(--low); }
+.step.current .step-badge{ background:var(--accent); border-color:var(--accent); color:var(--accent-ink); }
+.step-title{ font-size:.88rem; font-weight:600; }
+.step-desc{ font-size:.78rem; color:var(--muted); margin-top:.15rem; }
+
+/* ---------- Risk score ring (plain SVG, values are hardcoded per page) ---------- */
+.risk-ring-wrap{ display:flex; align-items:center; gap:1rem; }
+.risk-ring-value{ font-size:1.5rem; font-weight:700; }
+.risk-ring-label{ font-size:.72rem; color:var(--faint); }
+
+/* ---------- Bars (risk overview) ---------- */
+.bar-row{ display:flex; align-items:center; gap:.7rem; margin-bottom:.65rem; }
+.bar-row:last-child{ margin-bottom:0; }
+.bar-label{ font-size:.78rem; color:var(--muted); width:100px; flex:none; }
+.bar-track{ flex:1; height:8px; border-radius:99px; background:var(--surface-raised); overflow:hidden; }
+.bar-fill{ height:100%; border-radius:99px; }
+.bar-count{ font-size:.78rem; color:var(--faint); width:22px; text-align:right; }
+
+/* ---------- Signal chips (risk detection) ---------- */
+.signal-chip{
+  display:flex; align-items:flex-start; gap:.6rem; padding:.7rem .8rem; border:1px solid var(--line);
+  border-radius:var(--radius-sm); background:var(--surface-raised);
+}
+.signal-title{ font-size:.83rem; font-weight:600; }
+.signal-desc{ font-size:.75rem; color:var(--muted); margin-top:.15rem; }
+.signal-points{ margin-left:auto; font-size:.78rem; color:var(--faint); flex:none; }
+
+/* ---------- Detail page bits ---------- */
+.detail-header{ display:flex; align-items:center; gap:1rem; margin-bottom:1.4rem; flex-wrap:wrap; }
+.detail-avatar{ width:52px; height:52px; border-radius:12px; background:var(--accent-soft); color:var(--accent); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:1.2rem; flex:none; }
+.detail-name{ font-size:1.15rem; font-weight:700; }
+.detail-email{ font-size:.82rem; color:var(--muted); }
+.back-link{ display:inline-block; font-size:.8rem; color:var(--muted); text-decoration:none; margin-bottom:1rem; }
+.back-link:hover{ color:var(--ink); }
+
+.kv-list{ display:flex; flex-direction:column; gap:.65rem; }
+.kv-row{ display:flex; justify-content:space-between; gap:1rem; font-size:.83rem; }
+.kv-row .k{ color:var(--faint); }
+
+.section-title{ font-size:.95rem; margin-bottom:.9rem; }
+.mt-lg{ margin-top:1.5rem; }
+.text-muted{ color:var(--muted); }

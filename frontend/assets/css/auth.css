@@ -1,0 +1,45 @@
+/* ============================================================
+   Aegis prototype — login / forgot-password page styles
+   ============================================================ */
+
+.auth-body{ min-height:100vh; display:flex; margin:0; }
+
+.auth-visual{
+  flex:1.1; background:var(--canvas); display:flex; flex-direction:column; justify-content:space-between;
+  padding:2.5rem; border-right:1px solid var(--line);
+}
+@media (max-width:900px){ .auth-visual{ display:none; } }
+
+.auth-visual-top{ display:flex; align-items:center; gap:.7rem; }
+.auth-visual-body{ max-width:26rem; }
+.auth-visual-body h2{ font-size:1.9rem; line-height:1.2; margin-bottom:.75rem; }
+.auth-visual-body p{ color:var(--muted); font-size:.92rem; line-height:1.6; }
+
+.auth-feed{ display:flex; flex-direction:column; gap:.55rem; margin-top:1.75rem; }
+.auth-feed-item{
+  font-size:.78rem; color:var(--muted); background:var(--surface); border:1px solid var(--line);
+  padding:.5rem .7rem; border-radius:var(--radius-sm);
+}
+
+.auth-visual-foot{ font-size:.74rem; color:var(--faint); }
+
+.auth-panel{ flex:1; display:flex; align-items:center; justify-content:center; padding:2rem; }
+.auth-form-wrap{ width:100%; max-width:360px; }
+.auth-brand-row{ display:flex; align-items:center; gap:.6rem; margin-bottom:2.2rem; }
+
+.auth-form-wrap h1{ font-size:1.4rem; margin-bottom:.35rem; }
+.auth-form-wrap .sub{ font-size:.85rem; color:var(--muted); margin-bottom:1.6rem; }
+
+.field{ margin-bottom:1.1rem; }
+.field label{ display:block; font-size:.78rem; color:var(--muted); margin-bottom:.4rem; }
+.field .input{ width:100%; padding:.65rem .8rem; }
+.field-row-between{ display:flex; justify-content:space-between; align-items:center; margin-bottom:.4rem; }
+.field-row-between label{ margin-bottom:0; }
+.link-sm{ font-size:.78rem; color:var(--accent); text-decoration:none; }
+
+.auth-submit{ width:100%; text-align:center; padding:.7rem; margin-top:.4rem; }
+
+.demo-hint{
+  margin-top:1.5rem; font-size:.76rem; color:var(--faint); background:var(--surface); border:1px solid var(--line);
+  border-radius:var(--radius-sm); padding:.7rem .8rem; line-height:1.6;
+}

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Users & Accounts — Aegis</title>
+<link rel="stylesheet" href="assets/css/shell.css">
+</head>
+<body>
+<div class="app-shell">
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-mark">A</div>
+    <div class="brand-text"><span class="brand-name">Aegis</span><span class="brand-sub">ATO Containment &amp; Recovery</span></div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-group-label">Overview</div>
+    <a href="dashboard.html" class="nav-link">Dashboard</a>
+    <div class="nav-group-label">Accounts</div>
+    <a href="users.html" class="nav-link active">Users &amp; Accounts</a>
+    <a href="sessions.html" class="nav-link">Sessions</a>
+    <div class="nav-group-label">Detection &amp; Response</div>
+    <a href="risk-detection.html" class="nav-link">Risk Detection</a>
+    <a href="incidents.html" class="nav-link">Incidents</a>
+    <a href="containment.html" class="nav-link">Containment</a>
+    <a href="recovery.html" class="nav-link">Recovery</a>
+    <div class="nav-group-label">Compliance</div>
+    <a href="audit-logs.html" class="nav-link">Audit Logs</a>
+  </nav>
+</aside>
+<div class="main-col">
+<header class="topbar">
+  <div>
+    <h1>Users & Accounts</h1>
+    <div class="topbar-crumb">Accounts / Users</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:.6rem;">
+    <span class="tenant-tag">All tenants</span>
+    <div class="user-chip">
+      <div class="avatar">SA</div>
+      <span>Security Admin</span>
+    </div>
+    <a href="login.html" class="btn btn-sm">Log out</a>
+  </div>
+</header>
+<main class="content">
+
+<div class="card">
+  <div class="toolbar">
+    <input class="input search-input" type="search" placeholder="Search by name or email...">
+    <select class="input"><option>All tenants</option><option>Northwind Retail</option><option>Bright Finance</option><option>Loopline SaaS</option></select>
+    <select class="input"><option>All statuses</option><option>Active</option><option>Contained</option><option>Recovery in progress</option></select>
+    <select class="input"><option>All risk levels</option><option>Low</option><option>Medium</option><option>High</option></select>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>User</th><th>Tenant</th><th>Role</th><th>Status</th><th>Risk level</th><th>Risk score</th><th>Last login</th><th></th></tr></thead>
+      <tbody>
+        <tr><td><div style="display:flex;align-items:center;gap:.6rem;"><div class="avatar" style="width:30px;height:30px;">PN</div><div><div class="cell-primary">Priya Nair</div><div class="cell-muted" style="font-size:.76rem;">priya.nair@northwind.io</div></div></div></td><td class="cell-muted">Northwind Retail</td><td class="cell-muted">Tenant Admin</td><td><span class="badge badge-high">CONTAINED</span></td><td><span class="badge badge-high">HIGH</span></td><td class="mono">88</td><td class="cell-muted">1h ago</td><td><a href="user-detail.html" class="link-sm">View details &rarr;</a></td></tr>
+        <tr><td><div style="display:flex;align-items:center;gap:.6rem;"><div class="avatar" style="width:30px;height:30px;">DO</div><div><div class="cell-primary">Daniel Osei</div><div class="cell-muted" style="font-size:.76rem;">daniel.osei@northwind.io</div></div></div></td><td class="cell-muted">Northwind Retail</td><td class="cell-muted">User</td><td><span class="badge badge-info">RECOVERY IN PROGRESS</span></td><td><span class="badge badge-high">HIGH</span></td><td class="mono">81</td><td class="cell-muted">3h ago</td><td><a href="user-detail.html" class="link-sm">View details &rarr;</a></td></tr>
+        <tr><td><div style="display:flex;align-items:center;gap:.6rem;"><div class="avatar" style="width:30px;height:30px;">SR</div><div><div class="cell-primary">Sofia Rossi</div><div class="cell-muted" style="font-size:.76rem;">sofia.rossi@northwind.io</div></div></div></td><td class="cell-muted">Northwind Retail</td><td class="cell-muted">User</td><td><span class="badge badge-low">ACTIVE</span></td><td><span class="badge badge-medium">MEDIUM</span></td><td class="mono">38</td><td class="cell-muted">3h ago</td><td><a href="user-detail.html" class="link-sm">View details &rarr;</a></td></tr>
+        <tr><td><div style="display:flex;align-items:center;gap:.6rem;"><div class="avatar" style="width:30px;height:30px;">MF</div><div><div class="cell-primary">Maria Fernandez</div><div class="cell-muted" style="font-size:.76rem;">maria.f@brightfinance.com</div></div></div></td><td class="cell-muted">Bright Finance</td><td class="cell-muted">Tenant Admin</td><td><span class="badge badge-low">ACTIVE</span></td><td><span class="badge badge-medium">MEDIUM</span></td><td class="mono">46</td><td class="cell-muted">14m ago</td><td><a href="user-detail.html" class="link-sm">View details &rarr;</a></td></tr>
+        <tr><td><div style="display:flex;align-items:center;gap:.6rem;"><div class="avatar" style="width:30px;height:30px;">JW</div><div><div class="cell-primary">James Whitfield</div><div class="cell-muted" style="font-size:.76rem;">james.w@brightfinance.com</div></div></div></td><td class="cell-muted">Bright Finance</td><td class="cell-muted">User</td><td><span class="badge badge-low">ACTIVE</span></td><td><span class="badge badge-low">LOW</span></td><td class="mono">8</td><td class="cell-muted">20m ago</td><td><a href="user-detail.html" class="link-sm">View details &rarr;</a></td></tr>
+        <tr><td><div style="display:flex;align-items:center;gap:.6rem;"><div class="avatar" style="width:30px;height:30px;">AT</div><div><div class="cell-primary">Aiko Tanaka</div><div class="cell-muted" style="font-size:.76rem;">aiko.tanaka@loopline.app</div></div></div></td><td class="cell-muted">Loopline SaaS</td><td class="cell-muted">User</td><td><span class="badge badge-low">ACTIVE</span></td><td><span class="badge badge-low">LOW</span></td><td class="mono">4</td><td class="cell-muted">40m ago</td><td><a href="user-detail.html" class="link-sm">View details &rarr;</a></td></tr>
+        <tr><td><div style="display:flex;align-items:center;gap:.6rem;"><div class="avatar" style="width:30px;height:30px;">CO</div><div><div class="cell-primary">Chinedu Okafor</div><div class="cell-muted" style="font-size:.76rem;">chinedu.o@loopline.app</div></div></div></td><td class="cell-muted">Loopline SaaS</td><td class="cell-muted">Security Admin</td><td><span class="badge badge-low">ACTIVE</span></td><td><span class="badge badge-low">LOW</span></td><td class="mono">2</td><td class="cell-muted">9m ago</td><td><a href="user-detail.html" class="link-sm">View details &rarr;</a></td></tr>
+        <tr><td><div style="display:flex;align-items:center;gap:.6rem;"><div class="avatar" style="width:30px;height:30px;">GK</div><div><div class="cell-primary">Grace Kim</div><div class="cell-muted" style="font-size:.76rem;">grace.kim@loopline.app</div></div></div></td><td class="cell-muted">Loopline SaaS</td><td class="cell-muted">User</td><td><span class="badge badge-neutral">DISABLED</span></td><td><span class="badge badge-low">LOW</span></td><td class="mono">5</td><td class="cell-muted">14d ago</td><td><a href="user-detail.html" class="link-sm">View details &rarr;</a></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+</main>
+</div>
+</div>
+</body>
+</html>

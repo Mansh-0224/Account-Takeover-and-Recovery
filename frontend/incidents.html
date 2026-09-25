@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Incident Management — Aegis</title>
+<link rel="stylesheet" href="assets/css/shell.css">
+</head>
+<body>
+<div class="app-shell">
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-mark">A</div>
+    <div class="brand-text"><span class="brand-name">Aegis</span><span class="brand-sub">ATO Containment &amp; Recovery</span></div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-group-label">Overview</div>
+    <a href="dashboard.html" class="nav-link">Dashboard</a>
+    <div class="nav-group-label">Accounts</div>
+    <a href="users.html" class="nav-link">Users &amp; Accounts</a>
+    <a href="sessions.html" class="nav-link">Sessions</a>
+    <div class="nav-group-label">Detection &amp; Response</div>
+    <a href="risk-detection.html" class="nav-link">Risk Detection</a>
+    <a href="incidents.html" class="nav-link active">Incidents</a>
+    <a href="containment.html" class="nav-link">Containment</a>
+    <a href="recovery.html" class="nav-link">Recovery</a>
+    <div class="nav-group-label">Compliance</div>
+    <a href="audit-logs.html" class="nav-link">Audit Logs</a>
+  </nav>
+</aside>
+<div class="main-col">
+<header class="topbar">
+  <div>
+    <h1>Incident Management</h1>
+    <div class="topbar-crumb">Detection & Response / Incidents</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:.6rem;">
+    <span class="tenant-tag">All tenants</span>
+    <div class="user-chip">
+      <div class="avatar">SA</div>
+      <span>Security Admin</span>
+    </div>
+    <a href="login.html" class="btn btn-sm">Log out</a>
+  </div>
+</header>
+<main class="content">
+
+<div class="card">
+  <div class="toolbar">
+    <input class="input search-input" type="search" placeholder="Search by incident ID or user...">
+    <select class="input"><option>All statuses</option><option>Open</option><option>Investigating</option><option>Contained</option><option>Recovered</option><option>Closed</option></select>
+    <select class="input"><option>All severities</option><option>Low</option><option>Medium</option><option>High</option><option>Critical</option></select>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Incident</th><th>User</th><th>Tenant</th><th>Type</th><th>Risk score</th><th>Severity</th><th>Status</th><th>Created</th></tr></thead>
+      <tbody>
+        <tr><td class="mono cell-primary">INC-1042</td><td>Priya Nair</td><td class="cell-muted">Northwind Retail</td><td class="cell-muted">High risk login</td><td class="mono">88</td><td><span class="badge badge-critical">CRITICAL</span></td><td><span class="badge badge-high">CONTAINED</span></td><td class="cell-muted">1h ago</td></tr>
+        <tr><td class="mono cell-primary">INC-1039</td><td>Daniel Osei</td><td class="cell-muted">Northwind Retail</td><td class="cell-muted">Token replay</td><td class="mono">81</td><td><span class="badge badge-critical">CRITICAL</span></td><td><span class="badge badge-info">RECOVERED</span></td><td class="cell-muted">3h ago</td></tr>
+        <tr><td class="mono cell-primary">INC-1031</td><td>Sofia Rossi</td><td class="cell-muted">Northwind Retail</td><td class="cell-muted">High risk login</td><td class="mono">38</td><td><span class="badge badge-medium">MEDIUM</span></td><td><span class="badge badge-medium">INVESTIGATING</span></td><td class="cell-muted">3h ago</td></tr>
+        <tr><td class="mono cell-primary">INC-1020</td><td>Maria Fernandez</td><td class="cell-muted">Bright Finance</td><td class="cell-muted">Manual review</td><td class="mono">20</td><td><span class="badge badge-low">LOW</span></td><td><span class="badge badge-neutral">CLOSED</span></td><td class="cell-muted">2d ago</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card mt-lg">
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
+    <div>
+      <div class="card-header" style="margin-bottom:.3rem;"><h2 class="mono">INC-1042</h2><span class="badge badge-critical">CRITICAL</span></div>
+      <p class="text-muted" style="font-size:.85rem;">Priya Nair · Northwind Retail · High risk login · risk score 88</p>
+    </div>
+    <div style="display:flex;gap:.5rem;">
+      <a href="user-detail.html" class="btn btn-sm">View account</a>
+      <button class="btn btn-sm btn-primary">Mark recovered</button>
+    </div>
+  </div>
+
+  <div class="grid grid-2col mt-lg">
+    <div>
+      <div class="section-title">Status</div>
+      <div class="step done"><div class="step-badge">&#10003;</div><div class="step-title">Open</div></div>
+      <div class="step done"><div class="step-badge">&#10003;</div><div class="step-title">Investigating</div></div>
+      <div class="step current"><div class="step-badge">3</div><div class="step-title">Contained</div></div>
+      <div class="step"><div class="step-badge">4</div><div class="step-title">Recovered</div></div>
+      <div class="step"><div class="step-badge">5</div><div class="step-title">Closed</div></div>
+    </div>
+    <div>
+      <div class="section-title">Timeline</div>
+      <div class="timeline-item"><div class="timeline-dot"></div><div><div class="timeline-text">System auto-contained the account: sessions revoked, account locked.</div><div class="timeline-time">Sep 24, 06:13 AM</div></div></div>
+      <div class="timeline-item"><div class="timeline-dot"></div><div><div class="timeline-text">Incident opened — risk score 88 (impossible travel + new device + failed-login burst).</div><div class="timeline-time">Sep 24, 06:12 AM</div></div></div>
+    </div>
+  </div>
+</div>
+
+</main>
+</div>
+</div>
+</body>
+</html>

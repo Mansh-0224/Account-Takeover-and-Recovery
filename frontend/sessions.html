@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Session Management — Aegis</title>
+<link rel="stylesheet" href="assets/css/shell.css">
+</head>
+<body>
+<div class="app-shell">
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-mark">A</div>
+    <div class="brand-text"><span class="brand-name">Aegis</span><span class="brand-sub">ATO Containment &amp; Recovery</span></div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-group-label">Overview</div>
+    <a href="dashboard.html" class="nav-link">Dashboard</a>
+    <div class="nav-group-label">Accounts</div>
+    <a href="users.html" class="nav-link">Users &amp; Accounts</a>
+    <a href="sessions.html" class="nav-link active">Sessions</a>
+    <div class="nav-group-label">Detection &amp; Response</div>
+    <a href="risk-detection.html" class="nav-link">Risk Detection</a>
+    <a href="incidents.html" class="nav-link">Incidents</a>
+    <a href="containment.html" class="nav-link">Containment</a>
+    <a href="recovery.html" class="nav-link">Recovery</a>
+    <div class="nav-group-label">Compliance</div>
+    <a href="audit-logs.html" class="nav-link">Audit Logs</a>
+  </nav>
+</aside>
+<div class="main-col">
+<header class="topbar">
+  <div>
+    <h1>Session Management</h1>
+    <div class="topbar-crumb">Accounts / Sessions</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:.6rem;">
+    <span class="tenant-tag">All tenants</span>
+    <div class="user-chip">
+      <div class="avatar">SA</div>
+      <span>Security Admin</span>
+    </div>
+    <a href="login.html" class="btn btn-sm">Log out</a>
+  </div>
+</header>
+<main class="content">
+
+<div class="card">
+  <div class="toolbar">
+    <input class="input search-input" type="search" placeholder="Search by user, IP, or device...">
+    <select class="input"><option>All statuses</option><option>Active</option><option>Revoked</option></select>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Session ID</th><th>User</th><th>Device / Browser</th><th>IP address</th><th>Location</th><th>Last active</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        <tr style="background:rgba(248,113,113,.05);">
+          <td class="mono cell-primary">s-8841</td><td>Priya Nair <span class="badge badge-high" style="margin-left:.4rem;">Flagged</span></td>
+          <td class="cell-muted">Chrome / Windows</td><td class="mono cell-muted">41.203.72.14</td><td class="cell-muted">Lagos, NG</td><td class="cell-muted">1h ago</td>
+          <td><span class="badge badge-low">ACTIVE</span></td><td><button class="btn btn-sm btn-danger">Revoke</button></td>
+        </tr>
+        <tr>
+          <td class="mono cell-primary">s-8802</td><td>Priya Nair</td><td class="cell-muted">Safari / iPhone</td><td class="mono cell-muted">102.89.44.2</td><td class="cell-muted">Accra, GH</td><td class="cell-muted">4d ago</td>
+          <td><span class="badge badge-low">ACTIVE</span></td><td><button class="btn btn-sm btn-danger">Revoke</button></td>
+        </tr>
+        <tr>
+          <td class="mono cell-primary">s-8770</td><td>Daniel Osei</td><td class="cell-muted">Chrome / Android</td><td class="mono cell-muted">154.72.3.9</td><td class="cell-muted">Accra, GH</td><td class="cell-muted">3h ago</td>
+          <td><span class="badge badge-neutral">REVOKED</span></td><td>&mdash;</td>
+        </tr>
+        <tr>
+          <td class="mono cell-primary">s-8123</td><td>Maria Fernandez</td><td class="cell-muted">Chrome / macOS</td><td class="mono cell-muted">85.55.201.3</td><td class="cell-muted">Madrid, ES</td><td class="cell-muted">14m ago</td>
+          <td><span class="badge badge-low">ACTIVE · this device</span></td><td><button class="btn btn-sm btn-danger">Revoke</button></td>
+        </tr>
+        <tr>
+          <td class="mono cell-primary">s-8099</td><td>James Whitfield</td><td class="cell-muted">Edge / Windows</td><td class="mono cell-muted">81.174.3.20</td><td class="cell-muted">London, UK</td><td class="cell-muted">20m ago</td>
+          <td><span class="badge badge-low">ACTIVE</span></td><td><button class="btn btn-sm btn-danger">Revoke</button></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+</main>
+</div>
+</div>
+</body>
+</html>

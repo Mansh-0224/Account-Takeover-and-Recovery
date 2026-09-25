@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sign in — Aegis</title>
+<link rel="stylesheet" href="assets/css/shell.css">
+<link rel="stylesheet" href="assets/css/auth.css">
+</head>
+<body class="auth-body">
+
+  <!-- Left side: just decorative, explains the product -->
+  <section class="auth-visual">
+    <div class="auth-visual-top">
+      <div class="brand-mark">A</div>
+      <div class="brand-text">
+        <span class="brand-name">Aegis</span>
+        <span class="brand-sub">ATO Containment &amp; Recovery</span>
+      </div>
+    </div>
+
+    <div class="auth-visual-body">
+      <h2>Contain a hijacked account before it costs your customer anything.</h2>
+      <p>Aegis watches every login for signs of account takeover, isolates compromised accounts, and walks the real owner back in safely.</p>
+
+      <div class="auth-feed">
+        <div class="auth-feed-item">✅ chinedu.o@loopline.app — login verified, London</div>
+        <div class="auth-feed-item">⚠️ priya.nair@northwind.io — impossible travel detected</div>
+        <div class="auth-feed-item">⚠️ INC-1042 opened — account auto-contained</div>
+      </div>
+    </div>
+
+    <p class="auth-visual-foot">Static prototype · sample screens for demonstration only</p>
+  </section>
+
+  <!-- Right side: the actual "form" (nothing is submitted, this is just layout) -->
+  <section class="auth-panel">
+    <div class="auth-form-wrap">
+
+      <div class="auth-brand-row">
+        <div class="brand-mark">A</div>
+        <span class="brand-name">Aegis</span>
+      </div>
+
+      <h1>Sign in to your workspace</h1>
+      <p class="sub">Monitor accounts, respond to incidents, and manage recovery across your tenants.</p>
+
+      <div class="field">
+        <label for="email">Work email</label>
+        <input class="input" type="email" id="email" placeholder="you@company.com" value="security.admin@aegis.dev">
+      </div>
+      <div class="field">
+        <div class="field-row-between">
+          <label for="password">Password</label>
+          <a href="forgot-password.html" class="link-sm">Forgot password?</a>
+        </div>
+        <input class="input" type="password" id="password" placeholder="••••••••••" value="demo1234">
+      </div>
+
+      <!-- This is just a link styled as a button — clicking it takes you straight to the dashboard -->
+      <a href="dashboard.html" class="btn btn-primary auth-submit">Sign in</a>
+
+      <div class="demo-hint">
+        This is a static prototype. The fields above aren't checked — click <strong>Sign in</strong> to go straight to the dashboard.
+      </div>
+    </div>
+  </section>
+
+</body>
+</html>

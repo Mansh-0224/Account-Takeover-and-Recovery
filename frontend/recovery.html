@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Account Recovery — Aegis</title>
+<link rel="stylesheet" href="assets/css/shell.css">
+</head>
+<body>
+<div class="app-shell">
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-mark">A</div>
+    <div class="brand-text"><span class="brand-name">Aegis</span><span class="brand-sub">ATO Containment &amp; Recovery</span></div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-group-label">Overview</div>
+    <a href="dashboard.html" class="nav-link">Dashboard</a>
+    <div class="nav-group-label">Accounts</div>
+    <a href="users.html" class="nav-link">Users &amp; Accounts</a>
+    <a href="sessions.html" class="nav-link">Sessions</a>
+    <div class="nav-group-label">Detection &amp; Response</div>
+    <a href="risk-detection.html" class="nav-link">Risk Detection</a>
+    <a href="incidents.html" class="nav-link">Incidents</a>
+    <a href="containment.html" class="nav-link">Containment</a>
+    <a href="recovery.html" class="nav-link active">Recovery</a>
+    <div class="nav-group-label">Compliance</div>
+    <a href="audit-logs.html" class="nav-link">Audit Logs</a>
+  </nav>
+</aside>
+<div class="main-col">
+<header class="topbar">
+  <div>
+    <h1>Account Recovery</h1>
+    <div class="topbar-crumb">Detection & Response / Recovery</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:.6rem;">
+    <span class="tenant-tag">All tenants</span>
+    <div class="user-chip">
+      <div class="avatar">SA</div>
+      <span>Security Admin</span>
+    </div>
+    <a href="login.html" class="btn btn-sm">Log out</a>
+  </div>
+</header>
+<main class="content">
+
+<div class="card">
+  <div class="card-header"><h2>Choose an account</h2><span class="hint">Recovery is only available for contained or in-progress accounts</span></div>
+  <select class="input" style="max-width:360px;">
+    <option>Daniel Osei — RECOVERY IN PROGRESS</option>
+    <option>Priya Nair — CONTAINED</option>
+  </select>
+</div>
+
+<div class="grid grid-2 mt-lg">
+  <div class="card">
+    <div class="card-header"><h2>Recovery progress</h2><span class="hint">Email OTP</span></div>
+    <div class="step done"><div class="step-badge">&#10003;</div><div><div class="step-title">Recovery requested</div><div class="step-desc">The account owner requested recovery for a contained account.</div></div></div>
+    <div class="step done"><div class="step-badge">&#10003;</div><div><div class="step-title">Identity verification</div><div class="step-desc">A one-time code was sent to the account's recovery email.</div></div></div>
+    <div class="step done"><div class="step-badge">&#10003;</div><div><div class="step-title">Additional verification</div><div class="step-desc">A second check confirms the request isn't from an attacker.</div></div></div>
+    <div class="step done"><div class="step-badge">&#10003;</div><div><div class="step-title">Sessions revoked</div><div class="step-desc">Any remaining sessions — including the attacker's — are revoked.</div></div></div>
+    <div class="step done"><div class="step-badge">&#10003;</div><div><div class="step-title">Credential reset</div><div class="step-desc">The account owner sets a new password.</div></div></div>
+    <div class="step current"><div class="step-badge">6</div><div><div class="step-title">Trusted session</div><div class="step-desc">A fresh, verified session is issued to the real owner only.</div></div></div>
+    <div class="step"><div class="step-badge">7</div><div><div class="step-title">Recovery completed</div><div class="step-desc">The account is restored to active status and the incident is resolved.</div></div></div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:1rem;">
+    <div class="card">
+      <div class="detail-header" style="margin-bottom:0;">
+        <div class="detail-avatar">DO</div>
+        <div style="flex:1;min-width:150px;">
+          <div class="detail-name">Daniel Osei</div>
+          <div class="detail-email">daniel.osei@northwind.io</div>
+        </div>
+        <span class="badge badge-info">RECOVERY IN PROGRESS</span>
+      </div>
+    </div>
+    <div class="card">
+      <p class="text-muted" style="font-size:.85rem;margin-bottom:1rem;">Next: <strong style="color:var(--ink);">Trusted session</strong></p>
+      <button class="btn btn-primary">Advance to next step</button>
+    </div>
+  </div>
+</div>
+
+</main>
+</div>
+</div>
+</body>
+</html>

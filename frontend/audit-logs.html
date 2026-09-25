@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Security Audit Logs — Aegis</title>
+<link rel="stylesheet" href="assets/css/shell.css">
+</head>
+<body>
+<div class="app-shell">
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-mark">A</div>
+    <div class="brand-text"><span class="brand-name">Aegis</span><span class="brand-sub">ATO Containment &amp; Recovery</span></div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-group-label">Overview</div>
+    <a href="dashboard.html" class="nav-link">Dashboard</a>
+    <div class="nav-group-label">Accounts</div>
+    <a href="users.html" class="nav-link">Users &amp; Accounts</a>
+    <a href="sessions.html" class="nav-link">Sessions</a>
+    <div class="nav-group-label">Detection &amp; Response</div>
+    <a href="risk-detection.html" class="nav-link">Risk Detection</a>
+    <a href="incidents.html" class="nav-link">Incidents</a>
+    <a href="containment.html" class="nav-link">Containment</a>
+    <a href="recovery.html" class="nav-link">Recovery</a>
+    <div class="nav-group-label">Compliance</div>
+    <a href="audit-logs.html" class="nav-link active">Audit Logs</a>
+  </nav>
+</aside>
+<div class="main-col">
+<header class="topbar">
+  <div>
+    <h1>Security Audit Logs</h1>
+    <div class="topbar-crumb">Compliance / Audit Logs</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:.6rem;">
+    <span class="tenant-tag">All tenants</span>
+    <div class="user-chip">
+      <div class="avatar">SA</div>
+      <span>Security Admin</span>
+    </div>
+    <a href="login.html" class="btn btn-sm">Log out</a>
+  </div>
+</header>
+<main class="content">
+
+<div class="card">
+  <div class="toolbar">
+    <input class="input search-input" type="search" placeholder="Search by event, user, or IP...">
+    <select class="input"><option>All severities</option><option>Info</option><option>Low</option><option>Medium</option><option>High</option><option>Critical</option></select>
+    <span class="hint" style="margin-left:auto;">10 events</span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Timestamp</th><th>Event</th><th>User</th><th>Tenant</th><th>IP</th><th>Device</th><th>Severity</th></tr></thead>
+      <tbody>
+        <tr><td class="mono cell-muted">Sep 24, 09:15 AM</td><td class="cell-primary">LOGIN SUCCESS</td><td class="cell-muted">chinedu.o@loopline.app</td><td class="cell-muted">Loopline SaaS</td><td class="mono cell-muted">154.10.2.4</td><td class="cell-muted">iPad Pro</td><td><span class="badge badge-info">INFO</span></td></tr>
+        <tr><td class="mono cell-muted">Sep 24, 09:06 AM</td><td class="cell-primary">LOGIN SUCCESS</td><td class="cell-muted">maria.f@brightfinance.com</td><td class="cell-muted">Bright Finance</td><td class="mono cell-muted">85.55.201.3</td><td class="cell-muted">Chrome / macOS</td><td><span class="badge badge-info">INFO</span></td></tr>
+        <tr><td class="mono cell-muted">Sep 24, 06:13 AM</td><td class="cell-primary">ACCOUNT CONTAINED</td><td class="cell-muted">priya.nair@northwind.io</td><td class="cell-muted">Northwind Retail</td><td class="mono cell-muted">41.203.72.14</td><td class="cell-muted">Chrome / Windows</td><td><span class="badge badge-critical">CRITICAL</span></td></tr>
+        <tr><td class="mono cell-muted">Sep 24, 06:12 AM</td><td class="cell-primary">INCIDENT CREATED</td><td class="cell-muted">priya.nair@northwind.io</td><td class="cell-muted">Northwind Retail</td><td class="mono cell-muted">41.203.72.14</td><td class="cell-muted">Chrome / Windows</td><td><span class="badge badge-critical">CRITICAL</span></td></tr>
+        <tr><td class="mono cell-muted">Sep 24, 06:11 AM</td><td class="cell-primary">RISK EVALUATED</td><td class="cell-muted">priya.nair@northwind.io</td><td class="cell-muted">Northwind Retail</td><td class="mono cell-muted">41.203.72.14</td><td class="cell-muted">Chrome / Windows</td><td><span class="badge badge-high">HIGH</span></td></tr>
+        <tr><td class="mono cell-muted">Sep 24, 06:09 AM</td><td class="cell-primary">LOGIN FAILED</td><td class="cell-muted">priya.nair@northwind.io</td><td class="cell-muted">Northwind Retail</td><td class="mono cell-muted">41.203.72.14</td><td class="cell-muted">Chrome / Windows</td><td><span class="badge badge-medium">MEDIUM</span></td></tr>
+        <tr><td class="mono cell-muted">Sep 23, 10:43 PM</td><td class="cell-primary">TOKEN REPLAY DETECTED</td><td class="cell-muted">daniel.osei@northwind.io</td><td class="cell-muted">Northwind Retail</td><td class="mono cell-muted">154.72.3.9</td><td class="cell-muted">Chrome / Android</td><td><span class="badge badge-critical">CRITICAL</span></td></tr>
+        <tr><td class="mono cell-muted">Sep 23, 07:21 PM</td><td class="cell-primary">SESSION REVOKED</td><td class="cell-muted">tom.bakker@brightfinance.com</td><td class="cell-muted">Bright Finance</td><td class="mono cell-muted">81.10.4.2</td><td class="cell-muted">Windows Desktop</td><td><span class="badge badge-info">INFO</span></td></tr>
+        <tr><td class="mono cell-muted">Sep 22, 03:00 PM</td><td class="cell-primary">INCIDENT STATUS CHANGED</td><td class="cell-muted">maria.f@brightfinance.com</td><td class="cell-muted">Bright Finance</td><td class="mono cell-muted">85.55.201.3</td><td class="cell-muted">Chrome / macOS</td><td><span class="badge badge-info">INFO</span></td></tr>
+        <tr><td class="mono cell-muted">Sep 22, 02:20 PM</td><td class="cell-primary">PASSWORD CHANGED</td><td class="cell-muted">maria.f@brightfinance.com</td><td class="cell-muted">Bright Finance</td><td class="mono cell-muted">85.55.201.3</td><td class="cell-muted">Chrome / macOS</td><td><span class="badge badge-low">LOW</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+</main>
+</div>
+</div>
+</body>
+</html>

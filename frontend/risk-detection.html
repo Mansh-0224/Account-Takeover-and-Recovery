@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ATO / Risk Detection — Aegis</title>
+<link rel="stylesheet" href="assets/css/shell.css">
+</head>
+<body>
+<div class="app-shell">
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-mark">A</div>
+    <div class="brand-text"><span class="brand-name">Aegis</span><span class="brand-sub">ATO Containment &amp; Recovery</span></div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-group-label">Overview</div>
+    <a href="dashboard.html" class="nav-link">Dashboard</a>
+    <div class="nav-group-label">Accounts</div>
+    <a href="users.html" class="nav-link">Users &amp; Accounts</a>
+    <a href="sessions.html" class="nav-link">Sessions</a>
+    <div class="nav-group-label">Detection &amp; Response</div>
+    <a href="risk-detection.html" class="nav-link active">Risk Detection</a>
+    <a href="incidents.html" class="nav-link">Incidents</a>
+    <a href="containment.html" class="nav-link">Containment</a>
+    <a href="recovery.html" class="nav-link">Recovery</a>
+    <div class="nav-group-label">Compliance</div>
+    <a href="audit-logs.html" class="nav-link">Audit Logs</a>
+  </nav>
+</aside>
+<div class="main-col">
+<header class="topbar">
+  <div>
+    <h1>ATO / Risk Detection</h1>
+    <div class="topbar-crumb">Detection & Response / Risk Detection</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:.6rem;">
+    <span class="tenant-tag">All tenants</span>
+    <div class="user-chip">
+      <div class="avatar">SA</div>
+      <span>Security Admin</span>
+    </div>
+    <a href="login.html" class="btn btn-sm">Log out</a>
+  </div>
+</header>
+<main class="content">
+
+<div class="card">
+  <div class="card-header"><h2>Choose an account to inspect</h2><span class="hint">Risk signals are recalculated on every login</span></div>
+  <select class="input" style="max-width:360px;">
+    <option>Priya Nair — HIGH (88)</option>
+    <option>Daniel Osei — HIGH (81)</option>
+    <option>Sofia Rossi — MEDIUM (38)</option>
+    <option>Maria Fernandez — MEDIUM (46)</option>
+  </select>
+</div>
+
+<div class="grid grid-2 mt-lg">
+  <div class="card">
+    <div class="card-header"><h2>Detected signals — Priya Nair</h2><span class="hint">4 triggered</span></div>
+    <div style="display:flex;flex-direction:column;gap:.55rem;">
+      <div class="signal-chip"><div><div class="signal-title">Impossible travel</div><div class="signal-desc">Two logins from distant locations closer together than travel allows · 1h ago</div></div><div class="signal-points">+40</div></div>
+      <div class="signal-chip"><div><div class="signal-title">Unusual location</div><div class="signal-desc">Login from a country not seen in recent history · 1h ago</div></div><div class="signal-points">+20</div></div>
+      <div class="signal-chip"><div><div class="signal-title">New device</div><div class="signal-desc">Login from a device never seen on this account before · 1h ago</div></div><div class="signal-points">+20</div></div>
+      <div class="signal-chip"><div><div class="signal-title">Multiple failed logins</div><div class="signal-desc">5+ failed sign-in attempts before success · 1h ago</div></div><div class="signal-points">+25</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><h2>Risk assessment</h2></div>
+    <div class="risk-ring-wrap" style="margin-bottom:1rem;">
+      <svg width="110" height="110" viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="46" fill="none" stroke="var(--surface-raised)" stroke-width="9"/>
+        <circle cx="50" cy="50" r="46" fill="none" stroke="var(--high)" stroke-width="9" stroke-linecap="round"
+          stroke-dasharray="289" stroke-dashoffset="35" transform="rotate(-90 50 50)"/>
+        <text x="50" y="57" text-anchor="middle" font-size="24" font-weight="700" fill="var(--ink)">88</text>
+      </svg>
+      <div>
+        <div class="risk-ring-value" style="color:var(--high)">HIGH RISK</div>
+        <div class="risk-ring-label">105 points from 4 signals</div>
+      </div>
+    </div>
+    <div class="kv-list">
+      <div class="kv-row"><span class="k">Decision</span><span><span class="badge badge-high">Deny login &amp; contain account</span></span></div>
+      <div class="kv-row"><span class="k">Account status</span><span><span class="badge badge-high">CONTAINED</span></span></div>
+      <div class="kv-row"><span class="k">Tenant</span><span>Northwind Retail</span></div>
+    </div>
+    <a href="user-detail.html" class="btn btn-sm mt-lg" style="margin-top:1.1rem;">View full account &rarr;</a>
+  </div>
+</div>
+
+<div class="card mt-lg">
+  <div class="card-header"><h2>Signal reference</h2><span class="hint">How Aegis scores a login</span></div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Signal</th><th>Points</th><th>What it means</th></tr></thead>
+      <tbody>
+        <tr><td class="cell-primary">New device</td><td class="mono">+20</td><td class="cell-muted">Login from a device never seen on this account before.</td></tr>
+        <tr><td class="cell-primary">Unusual location</td><td class="mono">+20</td><td class="cell-muted">Login from a country not seen in recent history.</td></tr>
+        <tr><td class="cell-primary">Impossible travel</td><td class="mono">+40</td><td class="cell-muted">Two logins from distant locations closer together than travel allows.</td></tr>
+        <tr><td class="cell-primary">Multiple failed logins</td><td class="mono">+25</td><td class="cell-muted">5+ failed sign-in attempts in a short window before success.</td></tr>
+        <tr><td class="cell-primary">Suspicious session</td><td class="mono">+15</td><td class="cell-muted">Session behavior deviates from the account's normal pattern.</td></tr>
+        <tr><td class="cell-primary">Token replay</td><td class="mono">+45</td><td class="cell-muted">An already-used refresh token was presented again.</td></tr>
+        <tr><td class="cell-primary">Password change</td><td class="mono">+10</td><td class="cell-muted">Credential changed shortly before or after a risky login.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+</main>
+</div>
+</div>
+</body>
+</html>
