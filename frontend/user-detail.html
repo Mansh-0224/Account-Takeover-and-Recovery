@@ -35,12 +35,12 @@
     <div class="topbar-crumb">Accounts / Users / Details</div>
   </div>
   <div style="display:flex;align-items:center;gap:.6rem;">
-    <span class="tenant-tag">All tenants</span>
+    <span class="tenant-tag" id="tenant-tag">All tenants</span>
     <div class="user-chip">
-      <div class="avatar">SA</div>
-      <span>Security Admin</span>
+      <div class="avatar" id="user-avatar">SA</div>
+      <span id="user-name">Security Admin</span>
     </div>
-    <a href="login.html" class="btn btn-sm">Log out</a>
+    <button id="logout-btn" class="btn btn-sm" type="button">Log out</button>
   </div>
 </header>
 <main class="content">
@@ -48,21 +48,25 @@
 <a href="users.html" class="back-link">&larr; Back to users</a>
 
 <div class="detail-header">
-  <div class="detail-avatar">PN</div>
+  <div class="detail-avatar" id="detail-avatar">?</div>
   <div style="flex:1;min-width:200px;">
-    <div class="detail-name">Priya Nair</div>
-    <div class="detail-email">priya.nair@northwind.io</div>
+    <div class="detail-name" id="detail-name">Loading…</div>
+    <div class="detail-email" id="detail-email"></div>
   </div>
-  <span class="badge badge-high">CONTAINED</span>
-  <span class="badge badge-high">HIGH RISK</span>
-  <a href="recovery.html" class="btn btn-sm btn-primary">Start recovery</a>
+  <span class="badge badge-neutral" id="detail-status-badge">…</span>
+  <span id="detail-action-btn"></span>
 </div>
+<p class="hint" id="detail-load-error" style="display:none;color:var(--high);margin-top:-1rem;margin-bottom:1rem;"></p>
 
 <div class="grid grid-2">
   <div style="display:flex;flex-direction:column;gap:1rem;">
 
     <div class="card">
-      <div class="card-header"><h2>Risk score</h2><span class="hint">updated 1h ago</span></div>
+      <p class="hint" style="margin-bottom:.9rem;">The sections on this side of the page (risk score, signals, login history) are still sample placeholders — risk scoring and login history aren't implemented in the backend yet.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h2>Risk score</h2><span class="hint">sample data</span></div>
       <div class="risk-ring-wrap">
         <svg width="88" height="88" viewBox="0 0 80 80">
           <circle cx="40" cy="40" r="34" fill="none" stroke="var(--surface-raised)" stroke-width="8"/>
@@ -78,7 +82,7 @@
     </div>
 
     <div class="card">
-      <div class="card-header"><h2>Risk signals</h2><span class="hint">4 triggered</span></div>
+      <div class="card-header"><h2>Risk signals</h2><span class="hint">4 triggered (sample)</span></div>
       <div style="display:flex;flex-direction:column;gap:.55rem;">
         <div class="signal-chip"><div><div class="signal-title">Impossible travel</div><div class="signal-desc">Two logins from distant locations closer together than travel allows · 1h ago</div></div><div class="signal-points">+40</div></div>
         <div class="signal-chip"><div><div class="signal-title">Unusual location</div><div class="signal-desc">Login from a country not seen in recent history · 1h ago</div></div><div class="signal-points">+20</div></div>
@@ -88,7 +92,7 @@
     </div>
 
     <div class="card">
-      <div class="card-header"><h2>Login history</h2></div>
+      <div class="card-header"><h2>Login history</h2><span class="hint">sample data</span></div>
       <div class="table-wrap">
         <table><thead><tr><th>Result</th><th>Device</th><th>Location</th><th>Time</th></tr></thead>
         <tbody>
@@ -102,19 +106,17 @@
 
   <div style="display:flex;flex-direction:column;gap:1rem;">
     <div class="card">
-      <div class="card-header"><h2>Account details</h2></div>
+      <div class="card-header"><h2>Account details</h2><span class="hint">live from the backend</span></div>
       <div class="kv-list">
-        <div class="kv-row"><span class="k">Tenant</span><span>Northwind Retail</span></div>
-        <div class="kv-row"><span class="k">Role</span><span>Tenant Admin</span></div>
-        <div class="kv-row"><span class="k">Primary device</span><span>Unknown Windows PC</span></div>
-        <div class="kv-row"><span class="k">Last known location</span><span>Lagos, NG</span></div>
-        <div class="kv-row"><span class="k">Last login</span><span>Sep 24, 06:12 AM</span></div>
-        <div class="kv-row"><span class="k">Account ID</span><span class="mono">u1</span></div>
+        <div class="kv-row"><span class="k">Tenant</span><span id="detail-tenant"></span></div>
+        <div class="kv-row"><span class="k">Role</span><span id="detail-role"></span></div>
+        <div class="kv-row"><span class="k">Account created</span><span id="detail-created"></span></div>
+        <div class="kv-row"><span class="k">Account ID</span><span class="mono" id="detail-id"></span></div>
       </div>
     </div>
 
     <div class="card">
-      <div class="card-header"><h2>Active sessions</h2><span class="hint">1 active</span></div>
+      <div class="card-header"><h2>Active sessions</h2><span class="hint">1 active (sample)</span></div>
       <div class="table-wrap">
         <table><thead><tr><th>Session</th><th>Device</th><th>IP</th><th>Status</th></tr></thead>
         <tbody><tr><td class="mono cell-primary">s-8841</td><td class="cell-muted">Chrome / Windows</td><td class="mono cell-muted">41.203.72.14</td><td><span class="badge badge-low">ACTIVE</span></td></tr></tbody></table>
@@ -124,11 +126,8 @@
 
     <div class="card">
       <div class="card-header"><h2>Containment &amp; recovery</h2></div>
-      <p class="text-muted" style="font-size:.82rem;line-height:1.6;margin-bottom:1rem;">This account is currently contained. Sessions are revoked and sign-in is blocked until recovery is completed.</p>
-      <div style="display:flex;gap:.6rem;flex-wrap:wrap;">
-        <a href="containment.html" class="btn btn-sm btn-danger">Go to containment</a>
-        <a href="recovery.html" class="btn btn-sm">Go to recovery</a>
-      </div>
+      <p class="text-muted" style="font-size:.82rem;line-height:1.6;margin-bottom:1rem;" id="detail-containment-note">&nbsp;</p>
+      <div style="display:flex;gap:.6rem;flex-wrap:wrap;" id="detail-containment-actions"></div>
     </div>
   </div>
 </div>
@@ -136,5 +135,8 @@
 </main>
 </div>
 </div>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/session-guard.js"></script>
+<script src="assets/js/user-detail.js"></script>
 </body>
 </html>

@@ -35,17 +35,18 @@
     <div class="topbar-crumb">Accounts / Users</div>
   </div>
   <div style="display:flex;align-items:center;gap:.6rem;">
-    <span class="tenant-tag">All tenants</span>
+    <span class="tenant-tag" id="tenant-tag">All tenants</span>
     <div class="user-chip">
-      <div class="avatar">SA</div>
-      <span>Security Admin</span>
+      <div class="avatar" id="user-avatar">SA</div>
+      <span id="user-name">Security Admin</span>
     </div>
-    <a href="login.html" class="btn btn-sm">Log out</a>
+    <button id="logout-btn" class="btn btn-sm" type="button">Log out</button>
   </div>
 </header>
 <main class="content">
 
 <div class="card">
+  <p class="hint" style="margin-bottom:.9rem;">Live from the backend, scoped to your own tenant only. Risk level/score aren't modeled yet, so those columns show "—" for now.</p>
   <div class="toolbar">
     <input class="input search-input" type="search" placeholder="Search by name or email...">
     <select class="input"><option>All tenants</option><option>Northwind Retail</option><option>Bright Finance</option><option>Loopline SaaS</option></select>
@@ -55,15 +56,8 @@
   <div class="table-wrap">
     <table>
       <thead><tr><th>User</th><th>Tenant</th><th>Role</th><th>Status</th><th>Risk level</th><th>Risk score</th><th>Last login</th><th></th></tr></thead>
-      <tbody>
-        <tr><td><div style="display:flex;align-items:center;gap:.6rem;"><div class="avatar" style="width:30px;height:30px;">PN</div><div><div class="cell-primary">Priya Nair</div><div class="cell-muted" style="font-size:.76rem;">priya.nair@northwind.io</div></div></div></td><td class="cell-muted">Northwind Retail</td><td class="cell-muted">Tenant Admin</td><td><span class="badge badge-high">CONTAINED</span></td><td><span class="badge badge-high">HIGH</span></td><td class="mono">88</td><td class="cell-muted">1h ago</td><td><a href="user-detail.html" class="link-sm">View details &rarr;</a></td></tr>
-        <tr><td><div style="display:flex;align-items:center;gap:.6rem;"><div class="avatar" style="width:30px;height:30px;">DO</div><div><div class="cell-primary">Daniel Osei</div><div class="cell-muted" style="font-size:.76rem;">daniel.osei@northwind.io</div></div></div></td><td class="cell-muted">Northwind Retail</td><td class="cell-muted">User</td><td><span class="badge badge-info">RECOVERY IN PROGRESS</span></td><td><span class="badge badge-high">HIGH</span></td><td class="mono">81</td><td class="cell-muted">3h ago</td><td><a href="user-detail.html" class="link-sm">View details &rarr;</a></td></tr>
-        <tr><td><div style="display:flex;align-items:center;gap:.6rem;"><div class="avatar" style="width:30px;height:30px;">SR</div><div><div class="cell-primary">Sofia Rossi</div><div class="cell-muted" style="font-size:.76rem;">sofia.rossi@northwind.io</div></div></div></td><td class="cell-muted">Northwind Retail</td><td class="cell-muted">User</td><td><span class="badge badge-low">ACTIVE</span></td><td><span class="badge badge-medium">MEDIUM</span></td><td class="mono">38</td><td class="cell-muted">3h ago</td><td><a href="user-detail.html" class="link-sm">View details &rarr;</a></td></tr>
-        <tr><td><div style="display:flex;align-items:center;gap:.6rem;"><div class="avatar" style="width:30px;height:30px;">MF</div><div><div class="cell-primary">Maria Fernandez</div><div class="cell-muted" style="font-size:.76rem;">maria.f@brightfinance.com</div></div></div></td><td class="cell-muted">Bright Finance</td><td class="cell-muted">Tenant Admin</td><td><span class="badge badge-low">ACTIVE</span></td><td><span class="badge badge-medium">MEDIUM</span></td><td class="mono">46</td><td class="cell-muted">14m ago</td><td><a href="user-detail.html" class="link-sm">View details &rarr;</a></td></tr>
-        <tr><td><div style="display:flex;align-items:center;gap:.6rem;"><div class="avatar" style="width:30px;height:30px;">JW</div><div><div class="cell-primary">James Whitfield</div><div class="cell-muted" style="font-size:.76rem;">james.w@brightfinance.com</div></div></div></td><td class="cell-muted">Bright Finance</td><td class="cell-muted">User</td><td><span class="badge badge-low">ACTIVE</span></td><td><span class="badge badge-low">LOW</span></td><td class="mono">8</td><td class="cell-muted">20m ago</td><td><a href="user-detail.html" class="link-sm">View details &rarr;</a></td></tr>
-        <tr><td><div style="display:flex;align-items:center;gap:.6rem;"><div class="avatar" style="width:30px;height:30px;">AT</div><div><div class="cell-primary">Aiko Tanaka</div><div class="cell-muted" style="font-size:.76rem;">aiko.tanaka@loopline.app</div></div></div></td><td class="cell-muted">Loopline SaaS</td><td class="cell-muted">User</td><td><span class="badge badge-low">ACTIVE</span></td><td><span class="badge badge-low">LOW</span></td><td class="mono">4</td><td class="cell-muted">40m ago</td><td><a href="user-detail.html" class="link-sm">View details &rarr;</a></td></tr>
-        <tr><td><div style="display:flex;align-items:center;gap:.6rem;"><div class="avatar" style="width:30px;height:30px;">CO</div><div><div class="cell-primary">Chinedu Okafor</div><div class="cell-muted" style="font-size:.76rem;">chinedu.o@loopline.app</div></div></div></td><td class="cell-muted">Loopline SaaS</td><td class="cell-muted">Security Admin</td><td><span class="badge badge-low">ACTIVE</span></td><td><span class="badge badge-low">LOW</span></td><td class="mono">2</td><td class="cell-muted">9m ago</td><td><a href="user-detail.html" class="link-sm">View details &rarr;</a></td></tr>
-        <tr><td><div style="display:flex;align-items:center;gap:.6rem;"><div class="avatar" style="width:30px;height:30px;">GK</div><div><div class="cell-primary">Grace Kim</div><div class="cell-muted" style="font-size:.76rem;">grace.kim@loopline.app</div></div></div></td><td class="cell-muted">Loopline SaaS</td><td class="cell-muted">User</td><td><span class="badge badge-neutral">DISABLED</span></td><td><span class="badge badge-low">LOW</span></td><td class="mono">5</td><td class="cell-muted">14d ago</td><td><a href="user-detail.html" class="link-sm">View details &rarr;</a></td></tr>
+      <tbody id="users-table-body">
+        <tr><td colspan="8" class="cell-muted" style="text-align:center;padding:1.5rem;">Loading users from the backend…</td></tr>
       </tbody>
     </table>
   </div>
@@ -72,5 +66,8 @@
 </main>
 </div>
 </div>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/session-guard.js"></script>
+<script src="assets/js/users.js"></script>
 </body>
 </html>

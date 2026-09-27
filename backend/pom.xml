@@ -41,6 +41,14 @@
             <scope>runtime</scope>
         </dependency>
 
+        <!-- Password hashing (BCrypt) only. This is the small crypto utility
+             library, NOT the full spring-boot-starter-security framework, so
+             it does not add authentication filters or lock down endpoints. -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-crypto</artifactId>
+        </dependency>
+
         <!-- Testing (JUnit 5, Mockito, MockMvc) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

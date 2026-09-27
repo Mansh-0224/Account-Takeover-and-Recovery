@@ -45,26 +45,33 @@
       <h1>Sign in to your workspace</h1>
       <p class="sub">Monitor accounts, respond to incidents, and manage recovery across your tenants.</p>
 
-      <div class="field">
-        <label for="email">Work email</label>
-        <input class="input" type="email" id="email" placeholder="you@company.com" value="security.admin@aegis.dev">
-      </div>
-      <div class="field">
-        <div class="field-row-between">
-          <label for="password">Password</label>
-          <a href="forgot-password.html" class="link-sm">Forgot password?</a>
-        </div>
-        <input class="input" type="password" id="password" placeholder="••••••••••" value="demo1234">
-      </div>
+      <div id="login-error" class="auth-error" style="display:none;"></div>
 
-      <!-- This is just a link styled as a button — clicking it takes you straight to the dashboard -->
-      <a href="dashboard.html" class="btn btn-primary auth-submit">Sign in</a>
+      <form id="login-form">
+        <div class="field">
+          <label for="email">Work email</label>
+          <input class="input" type="email" id="email" placeholder="you@company.com" value="security.admin@aegis.dev" required>
+        </div>
+        <div class="field">
+          <div class="field-row-between">
+            <label for="password">Password</label>
+            <a href="forgot-password.html" class="link-sm">Forgot password?</a>
+          </div>
+          <input class="input" type="password" id="password" placeholder="••••••••••" value="demo1234" required>
+        </div>
+
+        <button type="submit" id="login-submit" class="btn btn-primary auth-submit">Sign in</button>
+      </form>
 
       <div class="demo-hint">
-        This is a static prototype. The fields above aren't checked — click <strong>Sign in</strong> to go straight to the dashboard.
+        Signed in for real against the backend. Try <code>security.admin@aegis.dev</code> / <code>demo1234</code>,
+        or any other seeded user shown in <code>backend/.../DataSeeder.java</code> — every seeded account uses the
+        same password.
       </div>
     </div>
   </section>
 
+<script src="assets/js/api.js"></script>
+<script src="assets/js/auth.js"></script>
 </body>
 </html>

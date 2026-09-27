@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "ATO Containment Service",
-    "description": "Postman collection for the ATO Containment Service. Start the backend first (see README).",
+    "description": "Postman collection for the ATO Containment Service. Start the backend first (see README). Phase 2 adds real login and tenant-scoped user endpoints: run 'Login' first (Postman keeps the session cookie for subsequent requests in the same collection run), then try the Users folder. Seeded users are documented in backend DataSeeder.java.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -73,6 +73,177 @@
               "path": [
                 "api",
                 "does-not-exist"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth (Phase 2)",
+      "item": [
+        {
+          "name": "Login (Tenant A admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Returns the logged-in user', function () { pm.expect(pm.response.json().email).to.eql('priya.nair@northwind.io'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"priya.nair@northwind.io\",\n  \"password\": \"demo1234\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Who am I (requires login first)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200 if logged in via Postman cookie jar', function () { pm.expect([200,401]).to.include(pm.response.code); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "me"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "logout"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users (Phase 2 - tenant isolation)",
+      "item": [
+        {
+          "name": "List users in my tenant (requires login first)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get one user by id (404 if it belongs to another tenant)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/REPLACE_WITH_A_USER_ID",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "REPLACE_WITH_A_USER_ID"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get one user WITH a spoofed tenantId query param (still ignored)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('A spoofed tenantId query param has no effect', function () { pm.expect([200,404,401]).to.include(pm.response.code); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/REPLACE_WITH_A_USER_ID?tenantId=someone-elses-tenant",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "REPLACE_WITH_A_USER_ID"
+              ],
+              "query": [
+                {
+                  "key": "tenantId",
+                  "value": "someone-elses-tenant"
+                }
               ]
             }
           }

@@ -19,23 +19,35 @@ recovery workflow, and threat scenarios — is written up in [`docs/`](docs/), s
 
 ## Current state
 
-The project has a working skeleton — a Spring Boot backend connected to MySQL, logging, and Postman-based
-API testing — plus a full **visual prototype** of the product under `frontend/`, built with mock data so the
-complete Detect → Investigate → Contain → Recover → Audit flow can be demonstrated end-to-end today.
+The project has a working Spring Boot backend connected to MySQL, with **real, tenant-isolated authentication
+and user management** — not mock data. `Tenant`, `Role`, and `User` are real JPA entities backed by real tables;
+logging in creates a real server-side session; and every user-related endpoint is scoped to the logged-in
+session's own tenant, enforced in the database query itself (see "Tenant isolation" below).
 
-The prototype's screens are **not wired to real backend logic yet** — no authentication, risk scoring, token
-replay detection, or recovery logic exists on the server. Every account, session, incident, and log entry
-you see in the prototype is sample data living in the browser (`localStorage`), so actions like revoking a
-session or advancing a recovery step update the UI convincingly without touching the database. The real
-implementation is designed in `docs/` and will replace this mock data module by module.
+The full **visual prototype** under `frontend/` still demonstrates the complete Detect → Investigate → Contain
+→ Recover → Audit flow. Two of its pages (**Users & Accounts** and **Account details**) now show real backend
+data; the rest (Sessions, Risk Detection, Incidents, Containment, Recovery, Audit Logs) still use sample data,
+since those modules aren't built yet — each of those pages is unchanged from the prototype. The real
+implementation plan lives in `docs/` and will replace the remaining mock data module by module.
+
+### Tenant isolation
+
+- A user's tenant is decided once, at login, from their database record — never from anything the client sends.
+- It's then stored server-side in an `HttpSession` and read back on every request via `CurrentSession`.
+- Every user lookup goes through `UserRepository.findByIdAndTenantId(id, tenantId)`. If an id belongs to a
+  different tenant, the query finds nothing — the caller gets the same 404 as a truly nonexistent id, never a
+  glimpse of another tenant's data.
+- Proven in `backend/src/test/java/.../UserServiceTenantIsolationTest.java` (service layer) and
+  `UserControllerTenantIsolationTest.java` (HTTP layer, including a test that a spoofed `tenantId` query
+  parameter has no effect).
 
 ## Structure
 
 ```text
 ato-containment-service/
 ├── docs/        Design documents (architecture, DB design, API list, workflow, threats)
-├── backend/     Spring Boot (Java 17, Maven) REST API
-├── frontend/    Visual prototype (HTML/CSS/JS, mock data) + the raw backend health-check page
+├── backend/     Spring Boot (Java 17, Maven) REST API — tenants, roles, users, sessions
+├── frontend/    Visual prototype (HTML/CSS/JS) — Users/Account details wired to real data, rest is mock
 ├── database/    Local setup script + draft schema for upcoming features
 ├── tests/       Smoke test script + Postman collection
 ├── terraform/   Reserved for AWS infrastructure (later)
@@ -44,24 +56,28 @@ ato-containment-service/
 └── .gitignore
 ```
 
-Backend packages already scaffolded for upcoming work (currently near-empty): `risk/`, `incident/`,
-`recovery/`, `logging/`, `security/`, alongside the active `controller/`, `service/`, `repository/`,
-`model/`, `config/`, `exception/`.
+Backend packages: `model` (JPA entities), `repository` (Spring Data), `service` (business logic incl. tenant
+isolation), `controller` (REST), `dto` (request/response shapes, never expose entities directly),
+`security` (session-based tenant resolution), `config` (CORS, data seeding), `exception`. Still-empty
+placeholders for upcoming work: `risk/`, `incident/`, `recovery/`, `logging/` (logging itself is implemented;
+the folder is reserved for a future audit-log module).
 
 ## Tech stack
 
 **In use now**
 - Backend: Java 17, Spring Boot, Maven, Spring Web, Spring Data JPA
 - Database: MySQL
-- Frontend: plain HTML, CSS, JavaScript (no framework)
+- Auth: server-side sessions (`HttpSession`) set at login, read via a small `CurrentSession` helper — no JWTs
+  yet, no `spring-boot-starter-security` (which would auto-lock every endpoint); just
+  `spring-security-crypto` for BCrypt password hashing
+- Frontend: plain HTML, CSS, JavaScript (no framework); two pages call the real API with `fetch`
 - API: REST (JSON), tested with Postman and a shell smoke-test script
 - Logging: SLF4J + a request-logging filter, output to console and file
 
 **Planned**
-- Spring Security with JWT access tokens and rotating refresh tokens, for authentication and session management
+- JWT access/refresh tokens and multi-device session management (replacing the current single `HttpSession`)
 - A rule-based risk-scoring engine for login and token-replay detection
 - Incident management, account containment, and account recovery (email OTP and admin-assisted) modules
-- Tenant isolation enforced at the query and schema level, with dedicated tests
 - An append-only security audit log
 - AWS deployment via Terraform (ECS/Fargate or Elastic Beanstalk, RDS for MySQL, S3/CloudFront for the
   frontend, SES for email, CloudWatch for logs, Secrets Manager for secrets) — see the AWS mapping table in
@@ -117,33 +133,52 @@ Open **http://localhost:5500/login.html** for the prototype, or **http://localho
 raw backend health check. Serve it on port 5500 as shown; opening a file directly from disk will be blocked
 by the browser.
 
-## 5. Explore the security prototype
+## 5. Explore the prototype
 
-Sign in at `login.html` with any email and a password of 4+ characters (or use the pre-filled demo
-credentials) — this is a mock sign-in, not real authentication. From there:
+Sign in at `login.html` with a **real seeded account** — this now calls the actual backend:
+
+- `security.admin@aegis.dev` / `demo1234` (Security Admin, "Platform" tenant), or
+- `priya.nair@northwind.io` / `demo1234` (Tenant Admin, "Northwind Retail"), or
+- any other user listed in `backend/src/main/java/com/ato/containment/config/DataSeeder.java`
+
+Every seeded account uses the password `demo1234`. From the dashboard:
 
 | Page | What it shows |
 |---|---|
-| Dashboard | Account/session/incident metrics, a recent-events timeline, and a risk-level breakdown |
-| Users & Accounts | Every mock account across 3 tenants, filterable by tenant, status, and risk level |
-| Account details | One account's risk score, signals, login history, sessions, and related incidents |
-| Sessions | Every session across all accounts, with a working **Revoke** action |
-| Risk Detection | Pick an account and see exactly which signals (new device, impossible travel, token replay, etc.) drove its risk score |
-| Incidents | The incident queue with a status stepper (`OPEN → INVESTIGATING → CONTAINED → RECOVERED → CLOSED`) you can actually advance |
-| Containment | Pick an account and fire the 5 containment actions (revoke sessions, lock account, restrict actions, notify user, create incident) |
-| Recovery | Walk a contained account through the 7-step recovery flow, one "Advance" click at a time |
-| Audit Logs | A searchable, filterable log of every simulated security event |
+| Dashboard | Account/session/incident metrics, a recent-events timeline, a risk-level breakdown — **sample data** |
+| Users & Accounts | **Real data**: every user in your own tenant only, fetched from `GET /api/users` |
+| Account details | **Partly real**: name/email/tenant/role/status/created date come from `GET /api/users/{id}`; risk score, signals, login history, and sessions further down the page are still sample data |
+| Sessions, Risk Detection, Incidents, Containment, Recovery, Audit Logs | **Sample data** — unchanged from the earlier prototype; these backend modules don't exist yet |
 
-Use the **"Simulate suspicious login"** button in the top bar (visible on most pages) to inject a fresh
-high-risk event into a random active account — it updates the dashboard, risk detection, incidents, and
-audit log all at once, which is a good way to demonstrate the flow live.
+Try logging in as a user from one tenant (e.g. `priya.nair@northwind.io`, Northwind Retail) and note that
+**Users & Accounts only ever shows Northwind's users** — logging in as `maria.f@brightfinance.com` instead
+shows only Bright Finance's users. That's tenant isolation working, not a bug.
 
-**Important:** everything in the prototype is sample data stored in your browser's `localStorage`
-(`assets/js/mock-data.js` seeds it). Nothing here calls the real backend or database — that's intentional for
-this stage. Use **"Reset demo data"** at the bottom of the sidebar at any point to restore the original
-sample state before a fresh demo run.
+## 6. Test tenant isolation
 
-## 6. Test the health endpoint
+Automated tests (see "Run the backend" above — `mvn test`):
+
+- `UserServiceTenantIsolationTest` — proves the repository/service layer denies a cross-tenant lookup
+- `UserControllerTenantIsolationTest` — proves the same thing over HTTP (returns 404), and proves a
+  client-supplied `tenantId` query parameter has no effect
+
+To see it manually with `curl` (a cookie jar keeps the session between requests):
+
+```bash
+# Log in as a Northwind user and save the session cookie
+curl -c cookies.txt -H "Content-Type: application/json" \
+  -d '{"email":"priya.nair@northwind.io","password":"demo1234"}' \
+  http://localhost:8080/api/auth/login
+
+# List users -- only Northwind's users come back
+curl -b cookies.txt http://localhost:8080/api/users
+
+# Copy a user id from a DIFFERENT tenant (e.g. a Bright Finance user) and try it:
+curl -b cookies.txt http://localhost:8080/api/users/<a-bright-finance-user-id>
+# -> 404, even though that id genuinely exists -- just not in Priya's tenant
+```
+
+## 7. Test the health endpoint
 
 ```bash
 curl http://localhost:8080/api/health
@@ -161,7 +196,7 @@ Expected response:
 
 On Windows PowerShell use `curl.exe` instead of `curl`.
 
-## 7. Test with Postman
+## 8. Test with Postman
 
 1. Open Postman → **Import** → select both files in `tests/postman/`:
    `ato-containment.postman_collection.json` and `ato-local.postman_environment.json`.
@@ -171,14 +206,14 @@ On Windows PowerShell use `curl.exe` instead of `curl`.
 
 New endpoints should be added to this same collection as they're built.
 
-## 8. Logging
+## 9. Logging
 
 Requests are logged to the console and to `backend/logs/ato-containment.log` (one line per request: method,
 path, status, duration). Log levels are set in `application.properties`
 (`logging.level.com.ato.containment=DEBUG`). Passwords, tokens and headers are never logged — see
 `docs/06-threat-scenarios.md` (TS-8) for why that matters.
 
-## 9. Design documents
+## 10. Design documents
 
 Before adding new features, read [`docs/README.md`](docs/README.md) — it links the full design: actors,
 architecture, the module list, database design, the planned API surface, the ATO detection/containment/

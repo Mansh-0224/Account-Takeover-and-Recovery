@@ -43,3 +43,8 @@
   margin-top:1.5rem; font-size:.76rem; color:var(--faint); background:var(--surface); border:1px solid var(--line);
   border-radius:var(--radius-sm); padding:.7rem .8rem; line-height:1.6;
 }
+
+.auth-error{
+  font-size:.83rem; color:var(--high); background:var(--high-soft); border:1px solid rgba(248,113,113,.35);
+  padding:.65rem .8rem; border-radius:var(--radius-sm); margin-bottom:1.1rem;
+}

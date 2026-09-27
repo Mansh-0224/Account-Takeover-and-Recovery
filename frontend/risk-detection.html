@@ -35,12 +35,12 @@
     <div class="topbar-crumb">Detection & Response / Risk Detection</div>
   </div>
   <div style="display:flex;align-items:center;gap:.6rem;">
-    <span class="tenant-tag">All tenants</span>
+    <span class="tenant-tag" id="tenant-tag">All tenants</span>
     <div class="user-chip">
-      <div class="avatar">SA</div>
-      <span>Security Admin</span>
+      <div class="avatar" id="user-avatar">SA</div>
+      <span id="user-name">Security Admin</span>
     </div>
-    <a href="login.html" class="btn btn-sm">Log out</a>
+    <button id="logout-btn" class="btn btn-sm" type="button">Log out</button>
   </div>
 </header>
 <main class="content">
@@ -110,5 +110,8 @@
 </main>
 </div>
 </div>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/session-guard.js"></script>
+
 </body>
 </html>

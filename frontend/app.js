@@ -47,7 +47,7 @@ async function checkHealth() {
             setState("ok", "Backend is running");
         } else {
             setState("degraded", "Backend is running, but the database is unreachable");
-            showHelp("Make sure PostgreSQL is running and that the username, password and database name " +
+            showHelp("Make sure MySQL is running and that the username, password and database name " +
                      "in backend/src/main/resources/application.properties are correct.");
         }
     } catch (error) {

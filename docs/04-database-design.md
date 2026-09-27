@@ -58,3 +58,20 @@ erDiagram
    (enforced when roles are set up in a later phase).
 8. **Indexes** cover the common lookups: user + time for `login_events`, tenant + status for `incidents`,
    user + status for `sessions`, tenant + time for `audit_logs`.
+
+## 4. Implementation status (Phase 2)
+
+`tenants` and `users` are now real, implemented tables (see `backend/.../model/Tenant.java` and `User.java`).
+Building them surfaced two deliberate departures from the draft above, made for simplicity at this stage:
+
+- **A separate `roles` table**, rather than a plain `role VARCHAR` column with a `CHECK` constraint. The
+  role's name doubles as its primary key (`USER`, `TENANT_ADMIN`, `SECURITY_ADMIN`), which is a small, real
+  lookup table instead of an inline enum — closer to normal form, and it's what "implement a Role entity" asked
+  for directly.
+- **Email is unique globally, not per-tenant** (draft rule 6 said per-tenant). Login only knows an email and a
+  password up front — it hasn't been told which tenant to look inside yet — so a globally unique email lets
+  it find the right user (and, from there, their tenant) in one lookup. Per-tenant uniqueness would need a
+  tenant selector on the login screen; deferred for now.
+
+Everything else in this document (`known_devices`, `sessions`, `risk_assessments`, `incidents`, etc.) is still
+just the design draft — none of those tables exist yet.

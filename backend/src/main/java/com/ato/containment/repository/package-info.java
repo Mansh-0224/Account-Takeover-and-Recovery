@@ -1,4 +1,4 @@
 /**
- * Spring Data repositories (database access). Empty in Phase 1.
+ * Spring Data repositories (database access).
  */
 package com.ato.containment.repository;
