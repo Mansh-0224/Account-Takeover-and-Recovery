@@ -24,7 +24,6 @@ public class CorsConfig implements WebMvcConfigurer {
         registry.addMapping("/api/**")
                 .allowedOrigins(allowedOrigins)
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                .allowedHeaders("*")
-                .allowCredentials(true); // lets the browser send/receive the session cookie across ports
+                .allowedHeaders("*"); // includes Authorization and X-Device-Id, sent by the frontend
     }
 }

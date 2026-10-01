@@ -1,13 +1,17 @@
 {
   "info": {
     "name": "ATO Containment Service",
-    "description": "Postman collection for the ATO Containment Service. Start the backend first (see README). Phase 2 adds real login and tenant-scoped user endpoints: run 'Login' first (Postman keeps the session cookie for subsequent requests in the same collection run), then try the Users folder. Seeded users are documented in backend DataSeeder.java.",
+    "description": "Collection for the ATO Containment Service API. Phase 3 uses bearer-token sessions: run 'Login' or 'Register' first (the test script saves the returned sessionToken as a collection variable), then every other request automatically sends it via the Authorization header. Seeded users are documented in backend DataSeeder.java.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
     {
       "key": "baseUrl",
       "value": "http://localhost:8080"
+    },
+    {
+      "key": "sessionToken",
+      "value": ""
     }
   ],
   "item": [
@@ -80,8 +84,52 @@
       ]
     },
     {
-      "name": "Auth (Phase 2)",
+      "name": "Auth (Phase 2 & 3)",
       "item": [
+        {
+          "name": "Register (new tenant + admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Returns a session token', function () { pm.expect(pm.response.json().sessionToken).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"companyName\": \"Postman Test Co\",\n  \"email\": \"postman.test@example.com\",\n  \"password\": \"demo1234\",\n  \"fullName\": \"Postman Tester\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            }
+          }
+        },
         {
           "name": "Login (Tenant A admin)",
           "event": [
@@ -91,7 +139,9 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
-                  "pm.test('Returns the logged-in user', function () { pm.expect(pm.response.json().email).to.eql('priya.nair@northwind.io'); });"
+                  "pm.test('Returns a session token', function () { pm.expect(pm.response.json().sessionToken).to.be.a('string'); });",
+                  "pm.test('Returns the logged-in user', function () { pm.expect(pm.response.json().user.email).to.eql('priya.nair@northwind.io'); });",
+                  "if (pm.response.code === 200) { pm.collectionVariables.set('sessionToken', pm.response.json().sessionToken); }"
                 ]
               }
             }
@@ -141,7 +191,12 @@
           ],
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{sessionToken}}"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/api/auth/me",
               "host": [
@@ -159,7 +214,12 @@
           "name": "Logout",
           "request": {
             "method": "POST",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{sessionToken}}"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/api/auth/logout",
               "host": [
@@ -182,7 +242,12 @@
           "name": "List users in my tenant (requires login first)",
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{sessionToken}}"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/api/users",
               "host": [
@@ -199,7 +264,12 @@
           "name": "Get one user by id (404 if it belongs to another tenant)",
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{sessionToken}}"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/api/users/REPLACE_WITH_A_USER_ID",
               "host": [
@@ -228,7 +298,12 @@
           ],
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{sessionToken}}"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/api/users/REPLACE_WITH_A_USER_ID?tenantId=someone-elses-tenant",
               "host": [
@@ -244,6 +319,114 @@
                   "key": "tenantId",
                   "value": "someone-elses-tenant"
                 }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Sessions (Phase 3)",
+      "item": [
+        {
+          "name": "List my sessions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{sessionToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/sessions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "sessions"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Revoke one session (404 if not yours)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{sessionToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/sessions/REPLACE_WITH_A_SESSION_ID",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "sessions",
+                "REPLACE_WITH_A_SESSION_ID"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Log out everywhere (revoke all my sessions)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{sessionToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/sessions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "sessions"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Change password",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{sessionToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"demo1234\",\n  \"newPassword\": \"a-new-password-123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "password"
               ]
             }
           }

@@ -46,35 +46,17 @@
 <main class="content">
 
 <div class="card">
+  <p class="hint" style="margin-bottom:.9rem;">Live from the backend — these are your own sessions only. "This device" marks the session you're using right now.</p>
   <div class="toolbar">
     <input class="input search-input" type="search" placeholder="Search by user, IP, or device...">
     <select class="input"><option>All statuses</option><option>Active</option><option>Revoked</option></select>
+    <button id="logout-all-btn" class="btn btn-sm btn-danger" type="button" style="margin-left:auto;">Log out all sessions</button>
   </div>
   <div class="table-wrap">
     <table>
       <thead><tr><th>Session ID</th><th>User</th><th>Device / Browser</th><th>IP address</th><th>Location</th><th>Last active</th><th>Status</th><th></th></tr></thead>
-      <tbody>
-        <tr style="background:rgba(248,113,113,.05);">
-          <td class="mono cell-primary">s-8841</td><td>Priya Nair <span class="badge badge-high" style="margin-left:.4rem;">Flagged</span></td>
-          <td class="cell-muted">Chrome / Windows</td><td class="mono cell-muted">41.203.72.14</td><td class="cell-muted">Lagos, NG</td><td class="cell-muted">1h ago</td>
-          <td><span class="badge badge-low">ACTIVE</span></td><td><button class="btn btn-sm btn-danger">Revoke</button></td>
-        </tr>
-        <tr>
-          <td class="mono cell-primary">s-8802</td><td>Priya Nair</td><td class="cell-muted">Safari / iPhone</td><td class="mono cell-muted">102.89.44.2</td><td class="cell-muted">Accra, GH</td><td class="cell-muted">4d ago</td>
-          <td><span class="badge badge-low">ACTIVE</span></td><td><button class="btn btn-sm btn-danger">Revoke</button></td>
-        </tr>
-        <tr>
-          <td class="mono cell-primary">s-8770</td><td>Daniel Osei</td><td class="cell-muted">Chrome / Android</td><td class="mono cell-muted">154.72.3.9</td><td class="cell-muted">Accra, GH</td><td class="cell-muted">3h ago</td>
-          <td><span class="badge badge-neutral">REVOKED</span></td><td>&mdash;</td>
-        </tr>
-        <tr>
-          <td class="mono cell-primary">s-8123</td><td>Maria Fernandez</td><td class="cell-muted">Chrome / macOS</td><td class="mono cell-muted">85.55.201.3</td><td class="cell-muted">Madrid, ES</td><td class="cell-muted">14m ago</td>
-          <td><span class="badge badge-low">ACTIVE · this device</span></td><td><button class="btn btn-sm btn-danger">Revoke</button></td>
-        </tr>
-        <tr>
-          <td class="mono cell-primary">s-8099</td><td>James Whitfield</td><td class="cell-muted">Edge / Windows</td><td class="mono cell-muted">81.174.3.20</td><td class="cell-muted">London, UK</td><td class="cell-muted">20m ago</td>
-          <td><span class="badge badge-low">ACTIVE</span></td><td><button class="btn btn-sm btn-danger">Revoke</button></td>
-        </tr>
+      <tbody id="sessions-table-body">
+        <tr><td colspan="8" class="cell-muted" style="text-align:center;padding:1.5rem;">Loading sessions from the backend…</td></tr>
       </tbody>
     </table>
   </div>
@@ -85,6 +67,7 @@
 </div>
 <script src="assets/js/api.js"></script>
 <script src="assets/js/session-guard.js"></script>
+<script src="assets/js/sessions.js"></script>
 
 </body>
 </html>

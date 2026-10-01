@@ -1,9 +1,17 @@
 /**
- * Login page behavior. This calls the real backend (POST /api/auth/login).
- * On success the backend has set a session cookie, so every other page can
- * just call GET /api/auth/me to find out who is logged in — see session-guard.js.
+ * Login page behavior. Calls the real backend (POST /api/auth/login).
+ * On success the backend returns a session token, which is stored in
+ * localStorage and sent as "Authorization: Bearer <token>" on every later
+ * request (see api.js). Every other page calls GET /api/auth/me to find out
+ * who is logged in — see session-guard.js.
  */
 document.addEventListener("DOMContentLoaded", () => {
+    if (getSessionToken()) {
+        // Already signed in -- skip straight to the dashboard.
+        window.location.href = "dashboard.html";
+        return;
+    }
+
     const form = document.getElementById("login-form");
     const errorBox = document.getElementById("login-error");
     const submitButton = document.getElementById("login-submit");
@@ -18,7 +26,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const password = document.getElementById("password").value;
 
         try {
-            await apiPost("/api/auth/login", { email, password });
+            const result = await apiPost("/api/auth/login", { email, password });
+            setSessionToken(result.sessionToken);
             window.location.href = "dashboard.html";
         } catch (error) {
             errorBox.textContent = error.status === 401

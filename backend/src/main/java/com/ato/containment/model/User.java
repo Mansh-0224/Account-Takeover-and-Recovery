@@ -50,6 +50,16 @@ public class User {
     @Column(nullable = false, length = 30)
     private UserStatus status = UserStatus.ACTIVE;
 
+    // Failed-login tracking (Phase 3). Reset to 0 on every successful login.
+    // Nothing currently changes status based on this count -- that decision
+    // belongs to the risk-detection module, which does not exist yet. This
+    // just records the fact so a later phase (or an admin) has it to look at.
+    @Column(name = "failed_login_count", nullable = false)
+    private int failedLoginCount = 0;
+
+    @Column(name = "last_failed_login_at")
+    private Instant lastFailedLoginAt;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private Instant createdAt;
@@ -108,6 +118,22 @@ public class User {
 
     public void setStatus(UserStatus status) {
         this.status = status;
+    }
+
+    public int getFailedLoginCount() {
+        return failedLoginCount;
+    }
+
+    public void setFailedLoginCount(int failedLoginCount) {
+        this.failedLoginCount = failedLoginCount;
+    }
+
+    public Instant getLastFailedLoginAt() {
+        return lastFailedLoginAt;
+    }
+
+    public void setLastFailedLoginAt(Instant lastFailedLoginAt) {
+        this.lastFailedLoginAt = lastFailedLoginAt;
     }
 
     public Instant getCreatedAt() {

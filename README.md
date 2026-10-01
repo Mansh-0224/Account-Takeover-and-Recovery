@@ -20,15 +20,33 @@ recovery workflow, and threat scenarios — is written up in [`docs/`](docs/), s
 ## Current state
 
 The project has a working Spring Boot backend connected to MySQL, with **real, tenant-isolated authentication
-and user management** — not mock data. `Tenant`, `Role`, and `User` are real JPA entities backed by real tables;
-logging in creates a real server-side session; and every user-related endpoint is scoped to the logged-in
-session's own tenant, enforced in the database query itself (see "Tenant isolation" below).
+and session management** — not mock data. `Tenant`, `Role`, `User`, and `Session` are real JPA entities backed
+by real tables. Logging in (or registering) creates a real, database-backed session identified by a bearer
+token; every authenticated endpoint resolves "who is this and which tenant do they belong to" from that
+session, never from anything the client claims.
 
 The full **visual prototype** under `frontend/` still demonstrates the complete Detect → Investigate → Contain
-→ Recover → Audit flow. Two of its pages (**Users & Accounts** and **Account details**) now show real backend
-data; the rest (Sessions, Risk Detection, Incidents, Containment, Recovery, Audit Logs) still use sample data,
-since those modules aren't built yet — each of those pages is unchanged from the prototype. The real
-implementation plan lives in `docs/` and will replace the remaining mock data module by module.
+→ Recover → Audit flow. Three of its pages (**Users & Accounts**, **Account details**, **Sessions**) now show
+real backend data, plus two new pages (**Create an account**, reachable from the login page) for registration.
+The rest (Risk Detection, Incidents, Containment, Recovery, Audit Logs) still use sample data, since those
+modules aren't built yet — each of those pages is unchanged from the prototype. The real implementation plan
+lives in `docs/` and will replace the remaining mock data module by module.
+
+### Authentication & sessions (Phase 3)
+
+- Passwords are hashed with BCrypt — never stored or logged in plain text.
+- A session token is an opaque, cryptographically random value. The server only ever stores its SHA-256 hash
+  (`sessions.token_hash`) — the raw token is shown to the client exactly once, in the login/register response.
+- The token is sent as `Authorization: Bearer <token>` on every request; `CurrentSessionResolver` looks it up,
+  checks it's `ACTIVE` and not expired (24h lifetime), and resolves the user/tenant/role from there.
+- Failed logins are tracked (`failedLoginCount`, `lastFailedLoginAt`) but nothing currently acts on that count —
+  that's the risk-detection module's job, deliberately not built yet.
+- A non-`ACTIVE` account (`DISABLED`, `CONTAINED`, `RECOVERY_IN_PROGRESS`) cannot log in, even with the correct
+  password.
+- Sessions can be listed, revoked individually, or revoked all at once (`GET`/`DELETE /api/sessions`,
+  `DELETE /api/sessions/{id}`); changing your password revokes every other session automatically.
+- Nothing logs a password, token, OTP, or `Authorization` header — see `RequestLoggingFilter` and the
+  `AuthService`/`SessionService` log lines, which log identifiers (user id, session id, IP) only.
 
 ### Tenant isolation
 
@@ -162,21 +180,25 @@ Automated tests (see "Run the backend" above — `mvn test`):
 - `UserControllerTenantIsolationTest` — proves the same thing over HTTP (returns 404), and proves a
   client-supplied `tenantId` query parameter has no effect
 
-To see it manually with `curl` (a cookie jar keeps the session between requests):
+To see it manually with `curl` (the login response includes a bearer token — grab it with `jq`, or just copy
+it by hand from the response):
 
 ```bash
-# Log in as a Northwind user and save the session cookie
-curl -c cookies.txt -H "Content-Type: application/json" \
+# Log in as a Northwind user and grab the session token
+TOKEN=$(curl -s -H "Content-Type: application/json" \
   -d '{"email":"priya.nair@northwind.io","password":"demo1234"}' \
-  http://localhost:8080/api/auth/login
+  http://localhost:8080/api/auth/login | jq -r .sessionToken)
 
 # List users -- only Northwind's users come back
-curl -b cookies.txt http://localhost:8080/api/users
+curl -H "Authorization: Bearer $TOKEN" http://localhost:8080/api/users
 
 # Copy a user id from a DIFFERENT tenant (e.g. a Bright Finance user) and try it:
-curl -b cookies.txt http://localhost:8080/api/users/<a-bright-finance-user-id>
+curl -H "Authorization: Bearer $TOKEN" http://localhost:8080/api/users/<a-bright-finance-user-id>
 # -> 404, even though that id genuinely exists -- just not in Priya's tenant
 ```
+
+(No `jq`? Just run the login `curl` without the `TOKEN=`/`jq` part, copy the `sessionToken` value from the
+printed JSON by hand, and paste it into the `Authorization: Bearer ...` header yourself.)
 
 ## 7. Test the health endpoint
 

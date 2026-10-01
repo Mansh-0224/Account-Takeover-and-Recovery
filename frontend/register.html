@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Create an account — Aegis</title>
+<link rel="stylesheet" href="assets/css/shell.css">
+<link rel="stylesheet" href="assets/css/auth.css">
+</head>
+<body class="auth-body">
+
+  <section class="auth-visual">
+    <div class="auth-visual-top">
+      <div class="brand-mark">A</div>
+      <div class="brand-text">
+        <span class="brand-name">Aegis</span>
+        <span class="brand-sub">ATO Containment &amp; Recovery</span>
+      </div>
+    </div>
+    <div class="auth-visual-body">
+      <h2>Set up your company's workspace.</h2>
+      <p>Creates a new, isolated tenant for your company, with you as its first admin. Everything you see afterward is scoped to your tenant only — other companies' data is never visible.</p>
+    </div>
+    <p class="auth-visual-foot">Static prototype · sample screens for demonstration only</p>
+  </section>
+
+  <section class="auth-panel">
+    <div class="auth-form-wrap">
+      <div class="auth-brand-row">
+        <div class="brand-mark">A</div>
+        <span class="brand-name">Aegis</span>
+      </div>
+
+      <h1>Create your account</h1>
+      <p class="sub">You'll be signed in right away as your company's first admin.</p>
+
+      <div id="register-error" class="auth-error" style="display:none;"></div>
+
+      <form id="register-form">
+        <div class="field">
+          <label for="companyName">Company name</label>
+          <input class="input" type="text" id="companyName" placeholder="Acme Inc." required>
+        </div>
+        <div class="field">
+          <label for="fullName">Your name</label>
+          <input class="input" type="text" id="fullName" placeholder="Jane Doe">
+        </div>
+        <div class="field">
+          <label for="email">Work email</label>
+          <input class="input" type="email" id="email" placeholder="you@company.com" required>
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <input class="input" type="password" id="password" placeholder="At least 8 characters" required minlength="8">
+        </div>
+
+        <button type="submit" id="register-submit" class="btn btn-primary auth-submit">Create account</button>
+      </form>
+
+      <a href="login.html" class="link-sm" style="display:inline-block;margin-top:1.2rem;">&larr; Back to sign in</a>
+    </div>
+  </section>
+
+<script src="assets/js/api.js"></script>
+<script src="assets/js/register.js"></script>
+</body>
+</html>
