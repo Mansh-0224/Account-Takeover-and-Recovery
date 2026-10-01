@@ -32,7 +32,7 @@ The rest (Risk Detection, Incidents, Containment, Recovery, Audit Logs) still us
 modules aren't built yet — each of those pages is unchanged from the prototype. The real implementation plan
 lives in `docs/` and will replace the remaining mock data module by module.
 
-### Authentication & sessions (Phase 3)
+### Authentication & sessions
 
 - Passwords are hashed with BCrypt — never stored or logged in plain text.
 - A session token is an opaque, cryptographically random value. The server only ever stores its SHA-256 hash
