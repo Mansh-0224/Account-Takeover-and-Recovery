@@ -22,4 +22,12 @@ public interface SessionRepository extends JpaRepository<Session, String> {
     Optional<Session> findByIdAndUserId(String id, String userId);
 
     List<Session> findByUserIdAndStatus(String userId, SessionStatus status);
+
+    // Used by risk/RiskEngine's NEW_DEVICE / UNUSUAL_LOCATION signals: "has
+    // this user ever had a session with this device/location before?"
+    boolean existsByUserIdAndDeviceId(String userId, String deviceId);
+
+    boolean existsByUserIdAndLocation(String userId, String location);
+
+    long countByUserIdAndStatus(String userId, SessionStatus status);
 }

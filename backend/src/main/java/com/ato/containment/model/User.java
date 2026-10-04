@@ -60,6 +60,12 @@ public class User {
     @Column(name = "last_failed_login_at")
     private Instant lastFailedLoginAt;
 
+    // Used by the risk engine's PASSWORD_CHANGED signal (a login shortly
+    // after a password change gets extra scrutiny). Set on creation and
+    // every time AuthService#changePassword runs.
+    @Column(name = "password_changed_at")
+    private Instant passwordChangedAt = Instant.now();
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private Instant createdAt;
@@ -134,6 +140,14 @@ public class User {
 
     public void setLastFailedLoginAt(Instant lastFailedLoginAt) {
         this.lastFailedLoginAt = lastFailedLoginAt;
+    }
+
+    public Instant getPasswordChangedAt() {
+        return passwordChangedAt;
+    }
+
+    public void setPasswordChangedAt(Instant passwordChangedAt) {
+        this.passwordChangedAt = passwordChangedAt;
     }
 
     public Instant getCreatedAt() {

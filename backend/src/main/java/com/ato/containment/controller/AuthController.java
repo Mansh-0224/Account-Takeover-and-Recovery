@@ -6,7 +6,9 @@ import com.ato.containment.dto.LoginResponse;
 import com.ato.containment.dto.RegisterRequest;
 import com.ato.containment.dto.UserDto;
 import com.ato.containment.exception.UnauthorizedException;
+import com.ato.containment.model.RiskAssessment;
 import com.ato.containment.model.Role;
+import com.ato.containment.model.RiskLevel;
 import com.ato.containment.model.Tenant;
 import com.ato.containment.model.User;
 import com.ato.containment.model.UserStatus;
@@ -25,6 +27,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 /**
  * Login and registration are the only places a tenant gets attached to a
@@ -58,7 +62,9 @@ public class AuthController {
 
     /**
      * Creates a brand-new tenant (the caller's company) with the caller as
-     * its first TENANT_ADMIN, then logs them straight in.
+     * its first TENANT_ADMIN, then logs them straight in. A brand-new
+     * account has no login history to score, so this skips the risk engine
+     * and starts the session directly at LOW risk.
      */
     @PostMapping("/register")
     public LoginResponse register(@RequestBody RegisterRequest body, HttpServletRequest request) {
@@ -86,14 +92,28 @@ public class AuthController {
         user.setStatus(UserStatus.ACTIVE);
         userRepository.save(user);
 
-        return startSession(user, request);
+        return startSession(user, request, null);
     }
 
+    /**
+     * The full suspicious-login flow lives in AuthService#attemptLogin (credential
+     * check -> account status -> risk assessment -> policy decision). This
+     * method just turns that outcome into an HTTP response.
+     */
     @PostMapping("/login")
     public LoginResponse login(@RequestBody LoginRequest request, HttpServletRequest httpRequest) {
-        User user = authService.authenticate(request.email(), request.password())
-                .orElseThrow(() -> new UnauthorizedException("Incorrect email or password."));
-        return startSession(user, httpRequest);
+        String deviceId = httpRequest.getHeader("X-Device-Id");
+        String ipAddress = httpRequest.getRemoteAddr();
+        String location = httpRequest.getHeader("X-Simulated-Location"); // dev-only simulated geo, see docs decision D5
+
+        AuthService.LoginOutcome outcome = authService.attemptLogin(request.email(), request.password(), deviceId, ipAddress, location);
+
+        return switch (outcome.status()) {
+            case INVALID_CREDENTIALS -> throw new UnauthorizedException("Incorrect email or password.");
+            case BLOCKED_HIGH_RISK -> throw new UnauthorizedException(
+                    "This login was blocked for security reasons and the account has been temporarily locked. Please contact your administrator or use account recovery.");
+            case SUCCESS -> startSession(outcome.user(), httpRequest, outcome.riskAssessment());
+        };
     }
 
     /** Logs out only the session making this request — "log out this device". */
@@ -132,14 +152,20 @@ public class AuthController {
         sessionService.revokeAllForUser(current.userId(), current.sessionId());
     }
 
-    private LoginResponse startSession(User user, HttpServletRequest request) {
+    private LoginResponse startSession(User user, HttpServletRequest request, RiskAssessment riskAssessment) {
         String deviceId = request.getHeader("X-Device-Id");
         String ipAddress = request.getRemoteAddr();
-        String location = request.getHeader("X-Simulated-Location"); // dev-only simulated geo, see docs decision D5
+        String location = request.getHeader("X-Simulated-Location");
         String userAgent = request.getHeader("User-Agent");
 
         SessionService.NewSession newSession = sessionService.create(user, deviceId, ipAddress, location, userAgent);
-        return new LoginResponse(newSession.rawToken(), UserDto.from(user));
+
+        String riskLevel = riskAssessment != null ? riskAssessment.getRiskLevel().name() : RiskLevel.LOW.name();
+        int riskScore = riskAssessment != null ? riskAssessment.getScore() : 0;
+        List<String> signals = riskAssessment != null ? riskAssessment.getSignals() : List.of();
+        boolean stepUpRequired = riskAssessment != null && riskAssessment.getRiskLevel() == RiskLevel.MEDIUM;
+
+        return new LoginResponse(newSession.rawToken(), UserDto.from(user), riskLevel, riskScore, signals, stepUpRequired);
     }
 
     private String uniqueSlug(String companyName) {

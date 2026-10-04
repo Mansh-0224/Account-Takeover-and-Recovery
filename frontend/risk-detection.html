@@ -32,7 +32,7 @@
 <header class="topbar">
   <div>
     <h1>ATO / Risk Detection</h1>
-    <div class="topbar-crumb">Detection & Response / Risk Detection</div>
+    <div class="topbar-crumb">Detection &amp; Response / Risk Detection</div>
   </div>
   <div style="display:flex;align-items:center;gap:.6rem;">
     <span class="tenant-tag" id="tenant-tag">All tenants</span>
@@ -46,65 +46,28 @@
 <main class="content">
 
 <div class="card">
-  <div class="card-header"><h2>Choose an account to inspect</h2><span class="hint">Risk signals are recalculated on every login</span></div>
-  <select class="input" style="max-width:360px;">
-    <option>Priya Nair — HIGH (88)</option>
-    <option>Daniel Osei — HIGH (81)</option>
-    <option>Sofia Rossi — MEDIUM (38)</option>
-    <option>Maria Fernandez — MEDIUM (46)</option>
-  </select>
+  <div class="card-header"><h2>Choose an account to inspect</h2><span class="hint">Live from the backend — real risk assessments recorded on login</span></div>
+  <select class="input" id="account-select" style="max-width:360px;"><option>Loading users…</option></select>
 </div>
 
-<div class="grid grid-2 mt-lg">
-  <div class="card">
-    <div class="card-header"><h2>Detected signals — Priya Nair</h2><span class="hint">4 triggered</span></div>
-    <div style="display:flex;flex-direction:column;gap:.55rem;">
-      <div class="signal-chip"><div><div class="signal-title">Impossible travel</div><div class="signal-desc">Two logins from distant locations closer together than travel allows · 1h ago</div></div><div class="signal-points">+40</div></div>
-      <div class="signal-chip"><div><div class="signal-title">Unusual location</div><div class="signal-desc">Login from a country not seen in recent history · 1h ago</div></div><div class="signal-points">+20</div></div>
-      <div class="signal-chip"><div><div class="signal-title">New device</div><div class="signal-desc">Login from a device never seen on this account before · 1h ago</div></div><div class="signal-points">+20</div></div>
-      <div class="signal-chip"><div><div class="signal-title">Multiple failed logins</div><div class="signal-desc">5+ failed sign-in attempts before success · 1h ago</div></div><div class="signal-points">+25</div></div>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="card-header"><h2>Risk assessment</h2></div>
-    <div class="risk-ring-wrap" style="margin-bottom:1rem;">
-      <svg width="110" height="110" viewBox="0 0 100 100">
-        <circle cx="50" cy="50" r="46" fill="none" stroke="var(--surface-raised)" stroke-width="9"/>
-        <circle cx="50" cy="50" r="46" fill="none" stroke="var(--high)" stroke-width="9" stroke-linecap="round"
-          stroke-dasharray="289" stroke-dashoffset="35" transform="rotate(-90 50 50)"/>
-        <text x="50" y="57" text-anchor="middle" font-size="24" font-weight="700" fill="var(--ink)">88</text>
-      </svg>
-      <div>
-        <div class="risk-ring-value" style="color:var(--high)">HIGH RISK</div>
-        <div class="risk-ring-label">105 points from 4 signals</div>
-      </div>
-    </div>
-    <div class="kv-list">
-      <div class="kv-row"><span class="k">Decision</span><span><span class="badge badge-high">Deny login &amp; contain account</span></span></div>
-      <div class="kv-row"><span class="k">Account status</span><span><span class="badge badge-high">CONTAINED</span></span></div>
-      <div class="kv-row"><span class="k">Tenant</span><span>Northwind Retail</span></div>
-    </div>
-    <a href="user-detail.html" class="btn btn-sm mt-lg" style="margin-top:1.1rem;">View full account &rarr;</a>
-  </div>
-</div>
+<div id="risk-detection-root" class="mt-lg"></div>
 
 <div class="card mt-lg">
-  <div class="card-header"><h2>Signal reference</h2><span class="hint">How Aegis scores a login</span></div>
+  <div class="card-header"><h2>Signal reference</h2><span class="hint">How Aegis scores a login (matches risk/RiskEngine.java)</span></div>
   <div class="table-wrap">
     <table>
       <thead><tr><th>Signal</th><th>Points</th><th>What it means</th></tr></thead>
       <tbody>
         <tr><td class="cell-primary">New device</td><td class="mono">+20</td><td class="cell-muted">Login from a device never seen on this account before.</td></tr>
-        <tr><td class="cell-primary">Unusual location</td><td class="mono">+20</td><td class="cell-muted">Login from a country not seen in recent history.</td></tr>
-        <tr><td class="cell-primary">Impossible travel</td><td class="mono">+40</td><td class="cell-muted">Two logins from distant locations closer together than travel allows.</td></tr>
-        <tr><td class="cell-primary">Multiple failed logins</td><td class="mono">+25</td><td class="cell-muted">5+ failed sign-in attempts in a short window before success.</td></tr>
-        <tr><td class="cell-primary">Suspicious session</td><td class="mono">+15</td><td class="cell-muted">Session behavior deviates from the account's normal pattern.</td></tr>
-        <tr><td class="cell-primary">Token replay</td><td class="mono">+45</td><td class="cell-muted">An already-used refresh token was presented again.</td></tr>
-        <tr><td class="cell-primary">Password change</td><td class="mono">+10</td><td class="cell-muted">Credential changed shortly before or after a risky login.</td></tr>
+        <tr><td class="cell-primary">Unusual location</td><td class="mono">+20</td><td class="cell-muted">Login from a location not seen before for this account.</td></tr>
+        <tr><td class="cell-primary">Multiple failed logins</td><td class="mono">+20</td><td class="cell-muted">3 or more failed sign-in attempts recorded before this one succeeded.</td></tr>
+        <tr><td class="cell-primary">Password changed</td><td class="mono">+30</td><td class="cell-muted">Password was changed within the last 10 minutes, shortly before this login.</td></tr>
+        <tr><td class="cell-primary">Suspicious session</td><td class="mono">+25</td><td class="cell-muted">3 or more other sessions were already active for this account.</td></tr>
+        <tr><td class="cell-primary">Token replay</td><td class="mono">+50</td><td class="cell-muted">The same session was used from a different device/IP shortly after being seen elsewhere.</td></tr>
       </tbody>
     </table>
   </div>
+  <p class="hint" style="margin-top:.8rem;">Thresholds: LOW 0–29 · MEDIUM 30–59 · HIGH 60+. MEDIUM allows the login through but flags it (no real step-up verification exists yet). HIGH blocks the login and contains the account.</p>
 </div>
 
 </main>
@@ -112,6 +75,7 @@
 </div>
 <script src="assets/js/api.js"></script>
 <script src="assets/js/session-guard.js"></script>
+<script src="assets/js/risk-detection.js"></script>
 
 </body>
 </html>

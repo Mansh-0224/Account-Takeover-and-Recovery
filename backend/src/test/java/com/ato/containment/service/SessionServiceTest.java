@@ -13,6 +13,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.quality.Strictness;
+import org.mockito.junit.jupiter.MockitoSettings;
 
 import java.time.Instant;
 import java.util.Optional;
@@ -23,17 +25,21 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT) // SecurityEventService.record is a side effect, not every test asserts on it
 class SessionServiceTest {
 
     @Mock
     private SessionRepository sessionRepository;
+
+    @Mock
+    private SecurityEventService securityEventService;
 
     private SessionService sessionService;
     private User user;
 
     @BeforeEach
     void setUp() {
-        sessionService = new SessionService(sessionRepository);
+        sessionService = new SessionService(sessionRepository, securityEventService);
 
         Tenant tenant = new Tenant("Tenant A", "tenant-a");
         user = new User();

@@ -2,6 +2,7 @@ package com.ato.containment.security;
 
 import com.ato.containment.exception.UnauthorizedException;
 import com.ato.containment.model.Session;
+import com.ato.containment.risk.TokenReplayDetector;
 import com.ato.containment.service.SessionService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Component;
@@ -18,14 +19,21 @@ import java.util.Optional;
  * never trusted for that — only a token the server itself handed out at
  * login, which the server can look up, expire, and revoke. That is what
  * makes tenant isolation trustworthy.
+ *
+ * Every resolved session is also checked for token replay (see
+ * {@link TokenReplayDetector}) before being trusted — this is the one place
+ * every authenticated request passes through, so it is the natural place to
+ * enforce that check network-wide.
  */
 @Component
 public class CurrentSessionResolver {
 
     private final SessionService sessionService;
+    private final TokenReplayDetector tokenReplayDetector;
 
-    public CurrentSessionResolver(SessionService sessionService) {
+    public CurrentSessionResolver(SessionService sessionService, TokenReplayDetector tokenReplayDetector) {
         this.sessionService = sessionService;
+        this.tokenReplayDetector = tokenReplayDetector;
     }
 
     public AuthenticatedUser require(HttpServletRequest request) {
@@ -34,6 +42,12 @@ public class CurrentSessionResolver {
 
         Session session = sessionService.resolve(token)
                 .orElseThrow(() -> new UnauthorizedException("Your session has expired or was revoked. Please log in again."));
+
+        String currentDeviceId = request.getHeader("X-Device-Id");
+        String currentIp = request.getRemoteAddr();
+        if (tokenReplayDetector.checkAndHandle(session, currentDeviceId, currentIp)) {
+            throw new UnauthorizedException("This session was revoked after suspicious reuse was detected. Please log in again.");
+        }
 
         return new AuthenticatedUser(
                 session.getUser().getId(),

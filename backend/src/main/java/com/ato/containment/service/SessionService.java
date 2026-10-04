@@ -1,8 +1,10 @@
 package com.ato.containment.service;
 
 import com.ato.containment.exception.ResourceNotFoundException;
+import com.ato.containment.model.EventType;
 import com.ato.containment.model.Session;
 import com.ato.containment.model.SessionStatus;
+import com.ato.containment.model.Severity;
 import com.ato.containment.model.User;
 import com.ato.containment.repository.SessionRepository;
 import org.slf4j.Logger;
@@ -37,10 +39,12 @@ public class SessionService {
     private static final Duration SESSION_LIFETIME = Duration.ofHours(24);
 
     private final SessionRepository sessionRepository;
+    private final SecurityEventService securityEventService;
     private final SecureRandom random = new SecureRandom();
 
-    public SessionService(SessionRepository sessionRepository) {
+    public SessionService(SessionRepository sessionRepository, SecurityEventService securityEventService) {
         this.sessionRepository = sessionRepository;
+        this.securityEventService = securityEventService;
     }
 
     /** What {@link #create} hands back: the raw token (shown to the client once) plus the stored session row. */
@@ -65,6 +69,8 @@ public class SessionService {
 
         log.info("Session created: sessionId={} userId={} tenantId={} deviceId={} ip={}",
                 session.getId(), user.getId(), user.getTenant().getId(), deviceId, ipAddress);
+        securityEventService.record(user.getTenant().getId(), user.getId(), EventType.SESSION_CREATED,
+                ipAddress, deviceId, Severity.INFO, "New session created.");
 
         return new NewSession(rawToken, session);
     }
@@ -141,6 +147,8 @@ public class SessionService {
         session.setStatus(SessionStatus.REVOKED);
         session.setRevokedAt(Instant.now());
         sessionRepository.save(session);
+        securityEventService.record(session.getTenantId(), session.getUser().getId(), EventType.SESSION_REVOKED,
+                session.getIpAddress(), session.getDeviceId(), Severity.INFO, "Session " + session.getId() + " revoked.");
     }
 
     private String generateToken() {

@@ -30,8 +30,11 @@ document.addEventListener("DOMContentLoaded", () => {
             setSessionToken(result.sessionToken);
             window.location.href = "dashboard.html";
         } catch (error) {
-            errorBox.textContent = error.status === 401
-                ? "Incorrect email or password."
+            // Show the backend's actual message when there is one -- a blocked
+            // high-risk login and a plain wrong-password both return 401, but
+            // with different, meaningful text (see AuthController#login).
+            errorBox.textContent = error.status
+                ? (error.message || "Incorrect email or password.")
                 : "Couldn't reach the backend. Is it running on http://localhost:8080?";
             errorBox.style.display = "block";
             submitButton.disabled = false;
