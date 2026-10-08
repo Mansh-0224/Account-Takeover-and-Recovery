@@ -57,4 +57,13 @@ class SecurityEventControllerTest {
 
         mockMvc.perform(get("/api/security-events")).andExpect(status().isUnauthorized());
     }
+
+    @Test
+    void invalidSeverityValue_returnsBadRequest_notAServerError() throws Exception {
+        given(currentSessionResolver.require(any(HttpServletRequest.class)))
+                .willReturn(new AuthenticatedUser("admin-1", "tenant-a", "TENANT_ADMIN", "session-1"));
+
+        mockMvc.perform(get("/api/security-events").param("severity", "NOT_A_REAL_SEVERITY"))
+                .andExpect(status().isBadRequest());
+    }
 }

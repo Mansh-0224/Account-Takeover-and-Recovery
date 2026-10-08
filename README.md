@@ -26,23 +26,39 @@ token; every authenticated endpoint resolves "who is this and which tenant do th
 session, never from anything the client claims.
 
 The full **visual prototype** under `frontend/` still demonstrates the complete Detect → Investigate → Contain
-→ Recover → Audit flow. Three of its pages (**Users & Accounts**, **Account details**, **Sessions**) now show
-real backend data, plus two new pages (**Create an account**, reachable from the login page) for registration.
-The rest (Risk Detection, Incidents, Containment, Recovery, Audit Logs) still use sample data, since those
-modules aren't built yet — each of those pages is unchanged from the prototype. The real implementation plan
-lives in `docs/` and will replace the remaining mock data module by module.
+→ Recover → Audit flow. **Users & Accounts**, **Account details**, **Sessions**, **Risk Detection**, and **Audit
+Logs** now show real backend data, plus a **Create an account** page (reachable from login) for registration.
+**Incidents**, **Containment**, and **Recovery** still use sample data, since those modules aren't built yet —
+each is unchanged from the prototype. The real implementation plan lives in `docs/` and will replace the
+remaining mock data module by module.
 
-### Authentication & sessions
+### Authentication & sessions (Phase 3)
 
 - Passwords are hashed with BCrypt — never stored or logged in plain text.
 - A session token is an opaque, cryptographically random value. The server only ever stores its SHA-256 hash
   (`sessions.token_hash`) — the raw token is shown to the client exactly once, in the login/register response.
 - The token is sent as `Authorization: Bearer <token>` on every request; `CurrentSessionResolver` looks it up,
   checks it's `ACTIVE` and not expired (24h lifetime), and resolves the user/tenant/role from there.
-- Failed logins are tracked (`failedLoginCount`, `lastFailedLoginAt`) but nothing currently acts on that count —
-  that's the risk-detection module's job, deliberately not built yet.
 - A non-`ACTIVE` account (`DISABLED`, `CONTAINED`, `RECOVERY_IN_PROGRESS`) cannot log in, even with the correct
   password.
+
+### Security events, risk scoring & token replay (Phase 4)
+
+- Every login, session, and password-change event is written to an append-only `security_events` table —
+  10 event types, searchable by type/severity/user/date range via `GET /api/security-events`. Three of those
+  types (`RECOVERY_STARTED/FAILED/COMPLETED`) exist in the schema but nothing triggers them yet — no recovery
+  module is built.
+- `risk/RiskEngine` scores every login with 6 rule-based signals (no ML), stored as a `RiskAssessment`:
+  new device +20, unusual location +20, multiple failed logins +20, recent password change +30, many active
+  sessions +25, token replay +50 — classified LOW (0–29) / MEDIUM (30–59) / HIGH (60+).
+- The login flow applies that score: **LOW** allows normally, **MEDIUM** allows through but is clearly flagged
+  as needing step-up verification (no real OTP/challenge channel exists, so this is never silently hidden),
+  **HIGH** blocks the login and automatically contains the account.
+- `risk/TokenReplayDetector` flags a session token reused from a different device/IP within 10 minutes of last
+  use, revokes that session, and contains the account. This project has no real JWTs, so the session's own id
+  is used as the practical `jti` equivalent — documented in the class itself.
+- Failed logins are tracked (`failedLoginCount`, `lastFailedLoginAt`) and feed the risk engine's
+  MULTIPLE_FAILED_LOGINS signal.
 - Sessions can be listed, revoked individually, or revoked all at once (`GET`/`DELETE /api/sessions`,
   `DELETE /api/sessions/{id}`); changing your password revokes every other session automatically.
 - Nothing logs a password, token, OTP, or `Authorization` header — see `RequestLoggingFilter` and the

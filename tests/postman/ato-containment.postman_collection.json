@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "ATO Containment Service",
-    "description": "Collection for the ATO Containment Service API. Phase 3 uses bearer-token sessions: run 'Login' or 'Register' first (the test script saves the returned sessionToken as a collection variable), then every other request automatically sends it via the Authorization header. Seeded users are documented in backend DataSeeder.java.",
+    "description": "Collection for the ATO Containment Service API. Phase 3 uses bearer-token sessions: run 'Login' or 'Register' first (the test script saves the returned sessionToken as a collection variable), then every other request automatically sends it via the Authorization header. Seeded users are documented in backend DataSeeder.java. Phase 4 adds security-event search and risk-assessment history, both tenant-scoped automatically from the bearer token -- no tenantId parameter exists to pass. Log in first so {{sessionToken}} is set.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -427,6 +427,126 @@
                 "api",
                 "auth",
                 "password"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Security Events (Phase 4)",
+      "item": [
+        {
+          "name": "Search my tenant's events",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{sessionToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/security-events?size=25",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "security-events"
+              ],
+              "query": [
+                {
+                  "key": "size",
+                  "value": "25"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Filter by event type and severity",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{sessionToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/security-events?eventType=LOGIN_SUCCESS&severity=INFO",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "security-events"
+              ],
+              "query": [
+                {
+                  "key": "eventType",
+                  "value": "LOGIN_SUCCESS"
+                },
+                {
+                  "key": "severity",
+                  "value": "INFO"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Risk Assessments (Phase 4)",
+      "item": [
+        {
+          "name": "List recent assessments (my tenant)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{sessionToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/risk-assessments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "risk-assessments"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List assessments for one user",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{sessionToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/risk-assessments?userId=REPLACE_WITH_A_USER_ID",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "risk-assessments"
+              ],
+              "query": [
+                {
+                  "key": "userId",
+                  "value": "REPLACE_WITH_A_USER_ID"
+                }
               ]
             }
           }
