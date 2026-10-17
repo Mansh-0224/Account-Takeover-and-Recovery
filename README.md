@@ -32,7 +32,7 @@ Logs** now show real backend data, plus a **Create an account** page (reachable 
 each is unchanged from the prototype. The real implementation plan lives in `docs/` and will replace the
 remaining mock data module by module.
 
-### Authentication & sessions (Phase 3)
+### Authentication & sessions
 
 - Passwords are hashed with BCrypt — never stored or logged in plain text.
 - A session token is an opaque, cryptographically random value. The server only ever stores its SHA-256 hash
@@ -42,7 +42,7 @@ remaining mock data module by module.
 - A non-`ACTIVE` account (`DISABLED`, `CONTAINED`, `RECOVERY_IN_PROGRESS`) cannot log in, even with the correct
   password.
 
-### Security events, risk scoring & token replay (Phase 4)
+### Security events, risk scoring & token replay 
 
 - Every login, session, and password-change event is written to an append-only `security_events` table —
   10 event types, searchable by type/severity/user/date range via `GET /api/security-events`. Three of those
