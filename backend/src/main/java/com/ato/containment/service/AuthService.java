@@ -1,17 +1,18 @@
 package com.ato.containment.service;
 
 import com.ato.containment.exception.UnauthorizedException;
+import com.ato.containment.incident.ContainmentService;
 import com.ato.containment.model.EventType;
+import com.ato.containment.model.IncidentSeverity;
+import com.ato.containment.model.IncidentType;
 import com.ato.containment.model.RiskAssessment;
 import com.ato.containment.model.RiskDecision;
 import com.ato.containment.model.RiskLevel;
 import com.ato.containment.model.RiskTriggerType;
-import com.ato.containment.model.SessionStatus;
 import com.ato.containment.model.Severity;
 import com.ato.containment.model.User;
 import com.ato.containment.model.UserStatus;
 import com.ato.containment.repository.RiskAssessmentRepository;
-import com.ato.containment.repository.SessionRepository;
 import com.ato.containment.repository.UserRepository;
 import com.ato.containment.risk.RiskEngine;
 import org.slf4j.Logger;
@@ -37,19 +38,20 @@ public class AuthService {
     private static final Logger log = LoggerFactory.getLogger(AuthService.class);
 
     private final UserRepository userRepository;
-    private final SessionRepository sessionRepository;
     private final RiskEngine riskEngine;
     private final RiskAssessmentRepository riskAssessmentRepository;
     private final SecurityEventService securityEventService;
+    private final ContainmentService containmentService;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-    public AuthService(UserRepository userRepository, SessionRepository sessionRepository, RiskEngine riskEngine,
-                       RiskAssessmentRepository riskAssessmentRepository, SecurityEventService securityEventService) {
+    public AuthService(UserRepository userRepository, RiskEngine riskEngine,
+                       RiskAssessmentRepository riskAssessmentRepository, SecurityEventService securityEventService,
+                       ContainmentService containmentService) {
         this.userRepository = userRepository;
-        this.sessionRepository = sessionRepository;
         this.riskEngine = riskEngine;
         this.riskAssessmentRepository = riskAssessmentRepository;
         this.securityEventService = securityEventService;
+        this.containmentService = containmentService;
     }
 
     /** What a login attempt resolved to. */
@@ -116,20 +118,15 @@ public class AuthService {
 
         if (risk.decision() == RiskDecision.BLOCK) {
             // HIGH risk: block the login and contain the account (see docs/03-ato-workflow.md).
-            user.setStatus(UserStatus.CONTAINED);
-            userRepository.save(user);
-            sessionRepository.findByUserIdAndStatus(user.getId(), SessionStatus.ACTIVE)
-                    .forEach(s -> {
-                        s.setStatus(SessionStatus.REVOKED);
-                        s.setRevokedAt(Instant.now());
-                        sessionRepository.save(s);
-                    });
-
+            // ATO_DETECTED is logged here (it's specific to "a login was the trigger");
+            // ContainmentService logs ACCOUNT_CONTAINED and revokes sessions/opens the incident.
             securityEventService.record(user.getTenant().getId(), user.getId(), EventType.ATO_DETECTED,
                     ipAddress, deviceId, Severity.HIGH,
                     "High-risk login blocked (score " + risk.score() + "): " + describeSignals(risk) + ".");
-            securityEventService.record(user.getTenant().getId(), user.getId(), EventType.ACCOUNT_CONTAINED,
-                    ipAddress, deviceId, Severity.HIGH, "Account automatically contained after a high-risk login attempt.");
+
+            containmentService.containAccount(user, IncidentType.ACCOUNT_TAKEOVER, IncidentSeverity.HIGH, risk.score(),
+                    "High-risk login blocked (score " + risk.score() + "): " + describeSignals(risk) + ".",
+                    ipAddress, deviceId);
 
             return new LoginOutcome(Status.BLOCKED_HIGH_RISK, user, assessment);
         }

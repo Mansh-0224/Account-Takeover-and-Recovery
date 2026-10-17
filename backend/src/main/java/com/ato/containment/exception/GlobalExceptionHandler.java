@@ -42,6 +42,13 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
     }
 
+    // A recovery request exists but its current state doesn't allow the
+    // requested action (expired, already completed, wrong code, too many attempts).
+    @ExceptionHandler(RecoveryException.class)
+    public ResponseEntity<ErrorResponse> handleRecoveryError(RecoveryException ex, HttpServletRequest request) {
+        return build(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
+    }
+
     // Thrown when a query parameter can't be converted to its expected type --
     // e.g. GET /api/security-events?severity=NOT_A_REAL_VALUE. Without this,
     // Spring's default handling would surface as a bare 500.

@@ -46,48 +46,18 @@
 <main class="content">
 
 <div class="card">
-  <div class="card-header"><h2>Choose an account</h2><span class="hint">Recovery is only available for contained or in-progress accounts</span></div>
-  <select class="input" style="max-width:360px;">
-    <option>Daniel Osei — RECOVERY IN PROGRESS</option>
-    <option>Priya Nair — CONTAINED</option>
-  </select>
+  <div class="card-header"><h2>Choose an account</h2><span class="hint">Read-only — real users can only verify their own recovery via "Forgot password"</span></div>
+  <select class="input" id="account-select" style="max-width:360px;"><option>Loading users…</option></select>
 </div>
 
-<div class="grid grid-2 mt-lg">
-  <div class="card">
-    <div class="card-header"><h2>Recovery progress</h2><span class="hint">Email OTP</span></div>
-    <div class="step done"><div class="step-badge">&#10003;</div><div><div class="step-title">Recovery requested</div><div class="step-desc">The account owner requested recovery for a contained account.</div></div></div>
-    <div class="step done"><div class="step-badge">&#10003;</div><div><div class="step-title">Identity verification</div><div class="step-desc">A one-time code was sent to the account's recovery email.</div></div></div>
-    <div class="step done"><div class="step-badge">&#10003;</div><div><div class="step-title">Additional verification</div><div class="step-desc">A second check confirms the request isn't from an attacker.</div></div></div>
-    <div class="step done"><div class="step-badge">&#10003;</div><div><div class="step-title">Sessions revoked</div><div class="step-desc">Any remaining sessions — including the attacker's — are revoked.</div></div></div>
-    <div class="step done"><div class="step-badge">&#10003;</div><div><div class="step-title">Credential reset</div><div class="step-desc">The account owner sets a new password.</div></div></div>
-    <div class="step current"><div class="step-badge">6</div><div><div class="step-title">Trusted session</div><div class="step-desc">A fresh, verified session is issued to the real owner only.</div></div></div>
-    <div class="step"><div class="step-badge">7</div><div><div class="step-title">Recovery completed</div><div class="step-desc">The account is restored to active status and the incident is resolved.</div></div></div>
-  </div>
-
-  <div style="display:flex;flex-direction:column;gap:1rem;">
-    <div class="card">
-      <div class="detail-header" style="margin-bottom:0;">
-        <div class="detail-avatar">DO</div>
-        <div style="flex:1;min-width:150px;">
-          <div class="detail-name">Daniel Osei</div>
-          <div class="detail-email">daniel.osei@northwind.io</div>
-        </div>
-        <span class="badge badge-info">RECOVERY IN PROGRESS</span>
-      </div>
-    </div>
-    <div class="card">
-      <p class="text-muted" style="font-size:.85rem;margin-bottom:1rem;">Next: <strong style="color:var(--ink);">Trusted session</strong></p>
-      <button class="btn btn-primary">Advance to next step</button>
-    </div>
-  </div>
-</div>
+<div id="recovery-root" class="mt-lg"></div>
 
 </main>
 </div>
 </div>
 <script src="assets/js/api.js"></script>
 <script src="assets/js/session-guard.js"></script>
+<script src="assets/js/recovery-admin.js"></script>
 
 </body>
 </html>

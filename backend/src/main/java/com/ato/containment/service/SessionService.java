@@ -127,6 +127,16 @@ public class SessionService {
     }
 
     /**
+     * Revokes a session the caller already has loaded (e.g. TokenReplayDetector,
+     * which just looked one up) -- avoids a redundant lookup and keeps
+     * SESSION_REVOKED logging in one place instead of being duplicated at
+     * every call site that revokes a session directly.
+     */
+    public void revoke(Session session) {
+        markRevoked(session);
+    }
+
+    /**
      * Revokes every active session for a user. If {@code exceptSessionId} is
      * given, that one is left alone (used for "log out all OTHER devices" on
      * password change); pass null to revoke everything, including the

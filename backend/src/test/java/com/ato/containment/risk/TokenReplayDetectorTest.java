@@ -1,5 +1,7 @@
 package com.ato.containment.risk;
 
+import com.ato.containment.incident.ContainmentService;
+import com.ato.containment.incident.IncidentService;
 import com.ato.containment.model.Role;
 import com.ato.containment.model.Session;
 import com.ato.containment.model.SessionStatus;
@@ -10,6 +12,7 @@ import com.ato.containment.repository.RiskAssessmentRepository;
 import com.ato.containment.repository.SessionRepository;
 import com.ato.containment.repository.UserRepository;
 import com.ato.containment.service.SecurityEventService;
+import com.ato.containment.service.SessionService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,6 +27,12 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
+/**
+ * SessionService and ContainmentService are real instances here (backed by
+ * mocked repositories), not mocks -- that way the existing assertions on
+ * session/user state after a detected replay still mean something, rather
+ * than just checking that a mock method was called.
+ */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 class TokenReplayDetectorTest {
@@ -36,6 +45,8 @@ class TokenReplayDetectorTest {
     private RiskAssessmentRepository riskAssessmentRepository;
     @Mock
     private UserRepository userRepository;
+    @Mock
+    private IncidentService incidentService;
 
     private TokenReplayDetector detector;
     private User user;
@@ -43,7 +54,9 @@ class TokenReplayDetectorTest {
     @BeforeEach
     void setUp() {
         RiskEngine riskEngine = new RiskEngine(sessionRepository);
-        detector = new TokenReplayDetector(sessionRepository, securityEventService, riskEngine, riskAssessmentRepository, userRepository);
+        SessionService sessionService = new SessionService(sessionRepository, securityEventService);
+        ContainmentService containmentService = new ContainmentService(userRepository, sessionService, securityEventService, incidentService);
+        detector = new TokenReplayDetector(sessionService, securityEventService, riskEngine, riskAssessmentRepository, containmentService);
 
         Tenant tenant = new Tenant("Tenant A", "tenant-a");
         user = new User();

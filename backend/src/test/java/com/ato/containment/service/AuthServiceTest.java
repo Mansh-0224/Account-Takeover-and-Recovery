@@ -1,5 +1,8 @@
 package com.ato.containment.service;
 
+import com.ato.containment.incident.ContainmentService;
+import com.ato.containment.model.IncidentSeverity;
+import com.ato.containment.model.IncidentType;
 import com.ato.containment.model.Role;
 import com.ato.containment.model.SessionStatus;
 import com.ato.containment.model.Tenant;
@@ -19,39 +22,48 @@ import org.mockito.quality.Strictness;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.time.Instant;
-import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 /**
- * Covers the full suspicious-login flow: credential/status checks (unchanged
- * from Phase 3) plus the new risk-based decision (LOW allows, MEDIUM allows
- * with a flag, HIGH blocks and contains the account).
+ * Covers the full suspicious-login flow: credential/status checks, plus the
+ * risk-based decision (LOW allows, MEDIUM allows with a flag, HIGH blocks).
+ * The actual containment side-effects (revoke sessions, set CONTAINED,
+ * open incident) are ContainmentService's job and have their own test --
+ * here we only verify AuthService correctly hands off to it.
  */
 @ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.LENIENT) // SecurityEventService.record is a side effect, not asserted on every test
+@MockitoSettings(strictness = Strictness.LENIENT)
 class AuthServiceTest {
 
     @Mock
     private UserRepository userRepository;
     @Mock
-    private SessionRepository sessionRepository;
+    private SessionRepository sessionRepository; // backs the real RiskEngine instance below
     @Mock
     private RiskAssessmentRepository riskAssessmentRepository;
     @Mock
     private SecurityEventService securityEventService;
+    @Mock
+    private ContainmentService containmentService;
 
     private AuthService authService;
-    private RiskEngine riskEngine; // real instance, backed by a mocked SessionRepository -- exercises real scoring logic
+    private RiskEngine riskEngine;
     private User user;
     private static final String RAW_PASSWORD = "correct horse battery staple";
 
     @BeforeEach
     void setUp() {
         riskEngine = new RiskEngine(sessionRepository);
-        authService = new AuthService(userRepository, sessionRepository, riskEngine, riskAssessmentRepository, securityEventService);
+        authService = new AuthService(userRepository, riskEngine, riskAssessmentRepository, securityEventService, containmentService);
 
         Tenant tenant = new Tenant("Tenant A", "tenant-a");
         user = new User();
@@ -80,6 +92,7 @@ class AuthServiceTest {
         assertThat(outcome.status()).isEqualTo(AuthService.Status.SUCCESS);
         assertThat(outcome.riskAssessment().getRiskLevel().name()).isEqualTo("LOW");
         assertThat(user.getFailedLoginCount()).isZero();
+        verifyNoInteractions(containmentService); // LOW risk never touches containment
     }
 
     @Test
@@ -134,23 +147,23 @@ class AuthServiceTest {
         // No real step-up/OTP verification exists -- MEDIUM is allowed through, not silently treated as LOW.
         assertThat(outcome.status()).isEqualTo(AuthService.Status.SUCCESS);
         assertThat(outcome.riskAssessment().getRiskLevel().name()).isEqualTo("MEDIUM");
-        assertThat(user.getStatus()).isEqualTo(UserStatus.ACTIVE); // not contained
+        verifyNoInteractions(containmentService);
     }
 
     @Test
-    void highRisk_manySignals_isBlockedAndAccountContained() {
+    void highRisk_manySignals_isBlocked_andDelegatesToContainmentService() {
         user.setFailedLoginCount(5); // pushes score to HIGH alongside new device/location
         when(userRepository.findByEmailIgnoreCase(user.getEmail())).thenReturn(Optional.of(user));
         when(sessionRepository.existsByUserIdAndDeviceId(user.getId(), "new-device")).thenReturn(false);
         when(sessionRepository.existsByUserIdAndLocation(user.getId(), "Lagos, NG")).thenReturn(false);
         when(sessionRepository.countByUserIdAndStatus(user.getId(), SessionStatus.ACTIVE)).thenReturn(0L);
-        when(sessionRepository.findByUserIdAndStatus(user.getId(), SessionStatus.ACTIVE)).thenReturn(List.of());
 
         AuthService.LoginOutcome outcome = authService.attemptLogin(user.getEmail(), RAW_PASSWORD, "new-device", "9.9.9.9", "Lagos, NG");
 
         assertThat(outcome.status()).isEqualTo(AuthService.Status.BLOCKED_HIGH_RISK);
         assertThat(outcome.riskAssessment().getRiskLevel().name()).isEqualTo("HIGH");
-        assertThat(user.getStatus()).isEqualTo(UserStatus.CONTAINED);
+        verify(containmentService).containAccount(eq(user), eq(IncidentType.ACCOUNT_TAKEOVER), eq(IncidentSeverity.HIGH),
+                anyInt(), anyString(), eq("9.9.9.9"), eq("new-device"));
     }
 
     @Test

@@ -1,17 +1,17 @@
 package com.ato.containment.risk;
 
+import com.ato.containment.incident.ContainmentService;
 import com.ato.containment.model.EventType;
+import com.ato.containment.model.IncidentSeverity;
+import com.ato.containment.model.IncidentType;
 import com.ato.containment.model.RiskAssessment;
 import com.ato.containment.model.RiskTriggerType;
 import com.ato.containment.model.Session;
-import com.ato.containment.model.SessionStatus;
 import com.ato.containment.model.Severity;
 import com.ato.containment.model.User;
-import com.ato.containment.model.UserStatus;
 import com.ato.containment.repository.RiskAssessmentRepository;
-import com.ato.containment.repository.SessionRepository;
-import com.ato.containment.repository.UserRepository;
 import com.ato.containment.service.SecurityEventService;
+import com.ato.containment.service.SessionService;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
@@ -40,20 +40,20 @@ public class TokenReplayDetector {
 
     static final Duration REPLAY_WINDOW = Duration.ofMinutes(10);
 
-    private final SessionRepository sessionRepository;
+    private final SessionService sessionService;
     private final SecurityEventService securityEventService;
     private final RiskEngine riskEngine;
     private final RiskAssessmentRepository riskAssessmentRepository;
-    private final UserRepository userRepository;
+    private final ContainmentService containmentService;
 
-    public TokenReplayDetector(SessionRepository sessionRepository, SecurityEventService securityEventService,
+    public TokenReplayDetector(SessionService sessionService, SecurityEventService securityEventService,
                                RiskEngine riskEngine, RiskAssessmentRepository riskAssessmentRepository,
-                               UserRepository userRepository) {
-        this.sessionRepository = sessionRepository;
+                               ContainmentService containmentService) {
+        this.sessionService = sessionService;
         this.securityEventService = securityEventService;
         this.riskEngine = riskEngine;
         this.riskAssessmentRepository = riskAssessmentRepository;
-        this.userRepository = userRepository;
+        this.containmentService = containmentService;
     }
 
     /**
@@ -86,9 +86,9 @@ public class TokenReplayDetector {
 
         // Revoke this exact session immediately -- this is what stops BOTH
         // the attacker and the legitimate owner from continuing to use it.
-        session.setStatus(SessionStatus.REVOKED);
-        session.setRevokedAt(Instant.now());
-        sessionRepository.save(session);
+        // Goes through SessionService so SESSION_REVOKED gets logged the same
+        // way every other revocation in this app logs it.
+        sessionService.revoke(session);
 
         RiskEngine.Result result = riskEngine.assessTokenReplay();
         RiskAssessment assessment = new RiskAssessment();
@@ -101,22 +101,14 @@ public class TokenReplayDetector {
         assessment.setDecision(result.decision());
         riskAssessmentRepository.save(assessment);
 
+        String description = "Session " + session.getId() + " was reused from a different device/IP shortly after being seen elsewhere.";
         securityEventService.record(session.getTenantId(), user.getId(), EventType.TOKEN_REPLAY,
-                currentIp, currentDeviceId, Severity.CRITICAL,
-                "Session " + session.getId() + " was reused from a different device/IP shortly after being seen elsewhere.");
+                currentIp, currentDeviceId, Severity.CRITICAL, description);
 
-        // Contain the account: revoke every other active session too, then lock it.
-        List<Session> others = sessionRepository.findByUserIdAndStatus(user.getId(), SessionStatus.ACTIVE);
-        for (Session other : others) {
-            other.setStatus(SessionStatus.REVOKED);
-            other.setRevokedAt(Instant.now());
-            sessionRepository.save(other);
-        }
-        user.setStatus(UserStatus.CONTAINED);
-        userRepository.save(user);
-
-        securityEventService.record(session.getTenantId(), user.getId(), EventType.ACCOUNT_CONTAINED,
-                currentIp, currentDeviceId, Severity.HIGH,
-                "Account automatically contained after a detected token replay.");
+        // Contains the account: revokes every other active session, sets
+        // CONTAINED, logs ACCOUNT_CONTAINED, and opens/updates the incident --
+        // the same routine AuthService uses for a HIGH-risk login block.
+        containmentService.containAccount(user, IncidentType.ACCOUNT_TAKEOVER, IncidentSeverity.CRITICAL,
+                result.score(), description, currentIp, currentDeviceId);
     }
 }
