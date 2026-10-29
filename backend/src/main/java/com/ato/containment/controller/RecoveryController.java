@@ -7,6 +7,7 @@ import com.ato.containment.dto.RecoveryRequestResponse;
 import com.ato.containment.dto.RecoveryStatusDto;
 import com.ato.containment.dto.RecoveryVerifyRequest;
 import com.ato.containment.dto.UserDto;
+import com.ato.containment.exception.ForbiddenException;
 import com.ato.containment.model.RecoveryRequest;
 import com.ato.containment.recovery.RecoveryService;
 import com.ato.containment.security.AuthenticatedUser;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.List;
 
@@ -37,10 +39,13 @@ public class RecoveryController {
 
     private final RecoveryService recoveryService;
     private final CurrentSessionResolver currentSessionResolver;
+    private final boolean exposeTestCode;
 
-    public RecoveryController(RecoveryService recoveryService, CurrentSessionResolver currentSessionResolver) {
+    public RecoveryController(RecoveryService recoveryService, CurrentSessionResolver currentSessionResolver,
+                              @Value("${app.recovery.expose-test-code:false}") boolean exposeTestCode) {
         this.recoveryService = recoveryService;
         this.currentSessionResolver = currentSessionResolver;
+        this.exposeTestCode = exposeTestCode;
     }
 
     @PostMapping("/request")
@@ -49,6 +54,7 @@ public class RecoveryController {
         String device = httpRequest.getHeader("X-Device-Id");
 
         return recoveryService.request(body.email(), ip, device)
+                .filter(result -> exposeTestCode)
                 .map(result -> new RecoveryRequestResponse(
                         result.request().getId(), result.request().getExpiresAt(), result.testModeCode(),
                         "Recovery started. In test mode the code is included in this response " +
@@ -78,6 +84,9 @@ public class RecoveryController {
     @GetMapping("/admin")
     public List<RecoveryStatusDto> adminHistory(HttpServletRequest httpRequest, @RequestParam String userId) {
         AuthenticatedUser current = currentSessionResolver.require(httpRequest);
+        if (!"TENANT_ADMIN".equals(current.role()) && !"SECURITY_ADMIN".equals(current.role())) {
+            throw new ForbiddenException("Only an administrator can view recovery history.");
+        }
         return recoveryService.listForTenantAndUser(current.tenantId(), userId).stream()
                 .map(RecoveryStatusDto::from).toList();
     }

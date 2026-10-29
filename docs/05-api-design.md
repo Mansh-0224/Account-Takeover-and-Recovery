@@ -1,117 +1,53 @@
-# 05. API Design
+# API reference
 
-## 1. Conventions
+The backend serves JSON under `/api`. Timestamps use ISO-8601. Authenticated routes require `Authorization: Bearer <sessionToken>`. Tenant scope is resolved from the database-backed session; clients cannot select a tenant by query parameter or request body. There is no general Spring Security filter chain: controllers call `CurrentSessionResolver` for authenticated routes.
 
-- Base path: `/api`. JSON in, JSON out. All timestamps are ISO-8601 UTC.
-- Auth: `Authorization: Bearer <access token>`, except the public endpoints listed below.
-- Tenant: taken from the JWT (`tenant_id` claim), **never** from the URL, query string or body.
-- Errors: the shared `ErrorResponse` shape already used by `/api/health`:
-  ```json
-  { "timestamp": "...", "status": 404, "error": "Not Found", "message": "...", "path": "/api/..." }
-  ```
-- Pagination: `?page=0&size=20` on list endpoints; response wraps results as `{ "content": [...], "page": 0, "size": 20, "totalElements": 0 }`.
-- Versioning: none yet. A `/api/v2` prefix can be introduced later if a breaking change is needed.
-- Only `/api/health`, `/api/auth/*` and `/api/recovery/*` (the public parts) are unauthenticated. Everything else requires a valid access token.
+## Routes
 
-## 2. Endpoint list
-
-Only `GET /api/health` is implemented today. Everything else below is the planned design.
-
-### Health — implemented
-
-| Method | Path | Auth | Description |
+| Method | Path | Access | Behavior |
 |---|---|---|---|
-| GET | `/api/health` | none | Backend and database status (implemented) |
+| GET | `/api/health` | Public | Application and database health |
+| POST | `/api/auth/register` | Public | Create a tenant and its first tenant admin, then start a session |
+| POST | `/api/auth/login` | Public | Check credentials, assess risk, and create a session when allowed |
+| POST | `/api/auth/logout` | Optional bearer token | Revoke the current session if the supplied token is valid |
+| POST | `/api/auth/logout-all` | Bearer token | Revoke all sessions for the caller |
+| GET | `/api/auth/me` | Bearer token | Return the caller's user profile |
+| PUT | `/api/auth/password` | Bearer token | Change password and revoke other sessions |
+| GET | `/api/tenants/me` | Bearer token | Return the caller's tenant |
+| GET | `/api/users` | Bearer token | List users in the caller's tenant |
+| GET | `/api/users/{id}` | Bearer token | Get a same-tenant user; other-tenant IDs return 404 |
+| POST | `/api/users` | Tenant/security admin | Create a user in the caller's tenant |
+| PUT | `/api/users/{id}` | Tenant/security admin | Update a same-tenant user |
+| DELETE | `/api/users/{id}` | Tenant/security admin | Delete a same-tenant user |
+| GET | `/api/sessions` | Bearer token | List the caller's sessions |
+| DELETE | `/api/sessions/{id}` | Bearer token | Revoke one of the caller's sessions |
+| DELETE | `/api/sessions` | Bearer token | Revoke all of the caller's sessions |
+| GET | `/api/risk-assessments` | Bearer token | List tenant risk assessments; optional `userId` filter |
+| GET | `/api/security-events` | Bearer token | Search tenant events; filters: `userId`, `eventType`, `severity`, `from`, `to`, `page`, `size` |
+| GET | `/api/incidents` | Bearer token | List tenant incidents |
+| GET | `/api/incidents/{id}` | Bearer token | Get a same-tenant incident |
+| POST | `/api/incidents/{id}/investigate` | Tenant/security admin | Move an open incident to investigation |
+| POST | `/api/incidents/{id}/contain` | Tenant/security admin | Mark an incident contained |
+| POST | `/api/incidents/{id}/recover` | Tenant/security admin | Mark an incident recovered |
+| POST | `/api/incidents/{id}/close` | Tenant/security admin | Close a recovered incident |
+| POST | `/api/recovery/request` | Public | Start recovery; response is generic unless local test-code exposure is enabled |
+| GET | `/api/recovery/{id}/status` | Public | Read status for a recovery request ID |
+| POST | `/api/recovery/{id}/verify` | Public | Verify the recovery code |
+| POST | `/api/recovery/{id}/complete` | Public | Set a new password after verification and create a session |
+| GET | `/api/recovery/admin?userId={id}` | Tenant/security admin | Read same-tenant recovery history |
 
-### Authentication — Module 1
+The `recover` incident action marks an incident as recovered; it is not itself the account recovery process. The account owner completes recovery through the four public recovery routes. Containment is invoked automatically by high-risk login and token-replay handling; there is no manual user-containment endpoint yet.
 
-| Method | Path | Auth | Description |
-|---|---|---|---|
-| POST | `/api/auth/register` | none | Create a tenant and its first admin user (or add a user to an existing tenant, depending on final design) |
-| POST | `/api/auth/login` | none | Verify credentials, run risk evaluation, return tokens or a step-up challenge |
-| POST | `/api/auth/step-up/verify` | none (uses a short-lived challenge id) | Submit the OTP for a suspicious login |
-| POST | `/api/auth/refresh` | refresh token | Rotate the refresh token, return a new access token; detects replay |
-| POST | `/api/auth/logout` | access token | Revoke the current session |
+## Risk and recovery behavior
 
-### Session management — Module 2
+The risk engine uses six rules: new device, unusual location, repeated failed logins, recent password change, multiple active sessions, and token replay. Scores below 30 are LOW, 30–59 MEDIUM, and 60 or more HIGH. LOW logins proceed. MEDIUM logins proceed with `stepUpRequired` flagged, but no challenge channel is implemented. HIGH risk blocks login and contains the account. A token replay also revokes the session and contains the account.
 
-| Method | Path | Auth | Description |
-|---|---|---|---|
-| GET | `/api/sessions/me` | user | List the caller's own active sessions |
-| DELETE | `/api/sessions/me/{sessionId}` | user | Revoke one of the caller's own sessions ("log out this device") |
-| GET | `/api/admin/users/{userId}/sessions` | tenant admin | List a user's sessions |
-| DELETE | `/api/admin/users/{userId}/sessions` | tenant admin | Revoke all of a user's sessions |
+Recovery codes are hashed in the database and expire after 15 minutes; five incorrect attempts fail a request. The local provider does not deliver messages. Set `APP_RECOVERY_EXPOSE_TEST_CODE=true` only for private local testing to return the request ID and code to the caller. Keep it unset elsewhere. A real email/SMS provider and production recovery delivery remain to be implemented.
 
-### Risk / ATO detection — Module 3 (mostly internal)
+## Response conventions and limits
 
-| Method | Path | Auth | Description |
-|---|---|---|---|
-| GET | `/api/admin/risk-assessments?userId=` | tenant admin | List recent risk assessments for a user |
-| GET | `/api/admin/tenants/me/security-settings` | tenant admin | View current risk thresholds |
-| PUT | `/api/admin/tenants/me/security-settings` | tenant admin | Update thresholds (bounded, audited) |
+Errors use the shared JSON error response. Security-event search is paged; page defaults to 0 and size to 25, capped at 100. Other list routes return arrays. See the controller and DTO classes for request and response fields; request validation is not yet consistently implemented across every endpoint.
 
-### Token replay detection — Module 4 (no dedicated endpoints; surfaced through incidents)
+## Not implemented
 
-### Incident management — Module 5
-
-| Method | Path | Auth | Description |
-|---|---|---|---|
-| GET | `/api/admin/incidents` | tenant admin / security admin | List incidents (filter by status, severity, user) |
-| GET | `/api/admin/incidents/{id}` | tenant admin / security admin | Incident detail with its timeline |
-| POST | `/api/admin/incidents/{id}/resolve` | tenant admin / security admin | Close an incident (e.g. false positive) |
-| GET | `/api/admin/incidents/{id}/audit-trail` | tenant admin / security admin | Audit log entries linked to the incident |
-
-### Account containment — Module 6
-
-| Method | Path | Auth | Description |
-|---|---|---|---|
-| POST | `/api/admin/users/{userId}/contain` | tenant admin / security admin | Manually contain a user |
-| POST | `/api/admin/users/{userId}/release` | tenant admin / security admin | Release a user without full recovery (false positive) |
-| GET | `/api/admin/incidents/{id}/containment-actions` | tenant admin / security admin | List containment actions for an incident |
-
-### Account recovery — Module 7
-
-| Method | Path | Auth | Description |
-|---|---|---|---|
-| POST | `/api/recovery/request` | none | Start recovery for an email + tenant (always returns the same generic response) |
-| POST | `/api/recovery/verify` | none (uses request id) | Submit the recovery code |
-| POST | `/api/recovery/complete` | none (uses verified request id) | Set a new password and restore the account |
-| GET | `/api/admin/recovery-requests?status=PENDING` | tenant admin | List recovery requests needing attention |
-| POST | `/api/admin/recovery/{id}/approve` | tenant admin | Approve an admin-assisted recovery |
-
-### Tenant isolation — Module 8 (no dedicated endpoints; enforced everywhere above, verified by tests)
-
-### Security logging — Module 9
-
-| Method | Path | Auth | Description |
-|---|---|---|---|
-| GET | `/api/admin/audit-logs?from=&to=&action=` | tenant admin (own tenant) / security admin (all) | Search the audit log |
-
-### Attacker simulator — dev profile only, disabled outside `dev`
-
-| Method | Path | Auth | Description |
-|---|---|---|---|
-| POST | `/api/dev/simulate/credential-stuffing` | dev profile | Fire repeated failed logins at an account |
-| POST | `/api/dev/simulate/impossible-travel` | dev profile | Two logins for the same user from far-apart locations, close in time |
-| POST | `/api/dev/simulate/token-replay` | dev profile | Reuse an already-rotated refresh token |
-
-## 3. Sample payloads (for Postman, planned)
-
-**POST /api/auth/login**
-```json
-{ "tenantSlug": "acme", "email": "user@example.com", "password": "correct horse battery staple" }
-```
-Response (normal): `{ "accessToken": "...", "refreshToken": "...", "expiresIn": 900 }`
-Response (suspicious): `{ "stepUpRequired": true, "challengeId": "..." }`
-Response (high risk): `HTTP 403 { "error": "ACCOUNT_CONTAINED", "message": "..." }`
-
-**POST /api/admin/users/{userId}/contain**
-```json
-{ "reason": "Reported by user as unauthorized access" }
-```
-
-**POST /api/recovery/request**
-```json
-{ "tenantSlug": "acme", "email": "user@example.com" }
-```
-Always responds `200` with the same generic message, so the endpoint cannot be used to discover accounts.
+The following routes in the original design are not present: step-up verification, refresh-token rotation, tenant risk-setting management, incident audit-trail and containment-action history, manual account release/containment, and admin-approved recovery. AWS hosting and EBS snapshot recovery are also not implemented.

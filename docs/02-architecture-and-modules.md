@@ -1,5 +1,7 @@
 # 02. System Architecture and Modules
 
+This document records the target design. The current local implementation differs in several areas: bearer tokens are opaque random values stored as hashes in a MySQL-backed session table (not JWTs); there is no refresh-token rotation, email provider, step-up challenge, or separate audit-log table. Current routes and implemented behavior are listed in [05-api-design.md](05-api-design.md). The AWS table below is a mapping proposal only; no AWS infrastructure is configured.
+
 ## 1. Architecture
 
 ```mermaid

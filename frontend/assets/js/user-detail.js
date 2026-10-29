@@ -106,11 +106,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         if (user.status === "ACTIVE") {
             actionSlot.innerHTML = `<a href="containment.html" class="btn btn-sm btn-danger">Contain account</a>`;
-            note.textContent = "This account is active. Containment and recovery aren't wired to real accounts yet — the linked pages use sample data.";
+            note.textContent = "This account is active. Suspicious activity can trigger automatic containment. The account owner can start recovery from the forgot-password page.";
             actions.innerHTML = `<a href="containment.html" class="btn btn-sm btn-danger">Go to containment</a>`;
         } else {
             actionSlot.innerHTML = `<a href="recovery.html" class="btn btn-sm btn-primary">Start recovery</a>`;
-            note.textContent = "This account is " + user.status.replace(/_/g, " ").toLowerCase() + ". Containment and recovery aren't wired to real accounts yet — the linked pages use sample data.";
+            note.textContent = "This account is " + user.status.replace(/_/g, " ").toLowerCase() + ". The account owner can use the forgot-password page to complete recovery.";
             actions.innerHTML = `<a href="recovery.html" class="btn btn-sm">Go to recovery</a>`;
         }
     }

@@ -69,7 +69,7 @@ class RecoveryControllerTest {
     }
 
     @Test
-    void request_knownEmail_returnsRequestIdAndTestCode() throws Exception {
+    void request_knownEmail_doesNotExposeTestCodeByDefault() throws Exception {
         RecoveryRequest req = sampleRequest("tenant-a");
         given(recoveryService.request(any(), any(), any()))
                 .willReturn(Optional.of(new RecoveryService.StartResult(req, "123456")));
@@ -77,8 +77,9 @@ class RecoveryControllerTest {
         mockMvc.perform(post("/api/recovery/request").contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(Map.of("email", "person@example.com"))))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.requestId").value(req.getId()))
-                .andExpect(jsonPath("$.testModeCode").value("123456"));
+                .andExpect(jsonPath("$.requestId").doesNotExist())
+                .andExpect(jsonPath("$.testModeCode").doesNotExist())
+                .andExpect(jsonPath("$.message").value("If that email has an account, recovery instructions have been sent."));
     }
 
     @Test
@@ -119,5 +120,14 @@ class RecoveryControllerTest {
 
         mockMvc.perform(get("/api/recovery/admin").param("userId", "user-1"))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void adminHistory_rejectsRegularUser() throws Exception {
+        given(currentSessionResolver.require(any(HttpServletRequest.class)))
+                .willReturn(new AuthenticatedUser("user-1", "tenant-a", "USER", "session-1"));
+
+        mockMvc.perform(get("/api/recovery/admin").param("userId", "user-1"))
+                .andExpect(status().isForbidden());
     }
 }

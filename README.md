@@ -1,37 +1,25 @@
-# ATO Containment Service
+# Account Takeover Containment and Recovery Service
 
-**Account Takeover Containment and Recovery Service for Small SaaS Applications** (internship project).
+CERT-In internship project for detecting suspicious account activity, containing compromised accounts, and recovering access for small SaaS applications.
 
-## Purpose
+## Current implementation
 
-Small SaaS companies rarely have a dedicated security team. When a customer account is hijacked, they
-have no fast way to notice it, stop the damage, or safely hand the account back to its real owner. This
-service is meant to:
+The Java 17 / Spring Boot backend uses MySQL and bearer-token sessions. It includes tenant-scoped user management; BCrypt password hashing; session creation, listing, and revocation; login risk assessments and token-replay response; security-event search; incident lifecycle actions; automatic account containment; and a self-service recovery workflow. The frontend is plain HTML, CSS, and JavaScript and calls the backend for authentication, users, sessions, risk assessments, incidents, recovery, and security events.
 
-1. **Detect** suspicious logins and stolen-token use.
-2. **Contain** a compromised account (lock it, kill its sessions) so an attacker loses access quickly.
-3. **Recover** the account by verifying the real owner and restoring access.
-4. **Record** everything in a tenant-separated audit trail.
+Recovery codes currently have no email or SMS delivery provider. For safety, the API returns the same generic response for known and unknown email addresses and does not expose a code or request ID unless `APP_RECOVERY_EXPOSE_TEST_CODE=true` is explicitly set for local testing. Do not enable that setting outside a private development environment. AWS infrastructure and EBS snapshot recovery are not implemented. See [the API reference](docs/05-api-design.md) and [design documents](docs/README.md).
 
-The full design — actors, architecture, module list, database design, API list, the detection/containment/
-recovery workflow, and threat scenarios — is written up in [`docs/`](docs/), starting with
-[`docs/README.md`](docs/README.md).
+Some screens remain visual examples: the dashboard metrics, containment page, and account login-history section use sample data. The containment page is not wired to a manual containment endpoint; containment currently runs automatically for high-risk login or detected token replay.
 
-## Current state
+## Requirements
 
-The project has a working Spring Boot backend connected to MySQL, with **real, tenant-isolated authentication
-and session management** — not mock data. `Tenant`, `Role`, `User`, and `Session` are real JPA entities backed
-by real tables. Logging in (or registering) creates a real, database-backed session identified by a bearer
-token; every authenticated endpoint resolves "who is this and which tenant do they belong to" from that
-session, never from anything the client claims.
+- JDK 17 or newer
+- Maven 3.9 or newer
+- MySQL 8
+- Python 3 or a local static-file server for the frontend
 
-The full **visual prototype** under `frontend/` still demonstrates the complete Detect → Investigate → Contain
-→ Recover → Audit flow. **Users & Accounts**, **Account details**, **Sessions**, **Risk Detection**, and **Audit
-Logs** now show real backend data, plus a **Create an account** page (reachable from login) for registration.
-**Incidents**, **Containment**, and **Recovery** still use sample data, since those modules aren't built yet —
-each is unchanged from the prototype. The real implementation plan lives in `docs/` and will replace the
-remaining mock data module by module.
+## Local setup
 
+HEAD
 ### Authentication & sessions
 
 - Passwords are hashed with BCrypt — never stored or logged in plain text.
@@ -130,129 +118,78 @@ the folder is reserved for a future audit-log module).
 1. Make sure MySQL (or MariaDB) is running.
 2. From the project root, create the local database and user (enter your MySQL root password when asked):
 
+1. Start MySQL. From the repository root, initialize the local database:
+d352626 (Harden recovery access, fix tests, and update project docs)
+
    ```bash
    mysql -u root -p < database/init.sql
    ```
 
-   This creates database `ato_db` and user `ato_user` (password `ato_password`), scoped to `localhost`.
-3. Verify the login works:
+   This creates `ato_db` and the local development user in `database/init.sql`. Change those example credentials before using the database for anything beyond local development.
+
+2. Start the backend:
 
    ```bash
-   mysql -u ato_user -p ato_db -e "SELECT 1;"
+   cd backend
+   mvn spring-boot:run
    ```
 
-The backend reads these defaults from `backend/src/main/resources/application.properties`.
-To use different values, set the environment variables `DB_URL`, `DB_USERNAME`, and `DB_PASSWORD`.
+   The API listens on `http://localhost:8080`. Set `DB_URL`, `DB_USERNAME`, and `DB_PASSWORD` in the process environment to override the local defaults. Spring Boot does not load `.env` automatically; `.env.example` is a reference.
 
-## 3. Run the backend
+3. To exercise recovery in the local demo, set `APP_RECOVERY_EXPOSE_TEST_CODE=true` before starting the backend. For PowerShell:
 
-```bash
-cd backend
-mvn spring-boot:run
-```
+   ```powershell
+   $env:APP_RECOVERY_EXPOSE_TEST_CODE = "true"
+   mvn spring-boot:run
+   ```
 
-The API starts on **http://localhost:8080**. MySQL must be running first.
-Run the unit test with `mvn test`.
+   Leave this unset for normal runs. The local verification provider does not send messages; without this opt-in, recovery cannot be completed until a delivery provider is added.
 
-## 4. Run the frontend
+4. In another terminal, serve the frontend:
 
-In a second terminal:
+   ```bash
+   cd frontend
+   python -m http.server 5500
+   ```
 
-```bash
-cd frontend
-python -m http.server 5500      # use python3 on macOS/Linux if needed
-```
+   Open `http://localhost:5500/login.html`. The backend allows the documented local frontend origins in `application.properties`.
 
-Open **http://localhost:5500/login.html** for the prototype, or **http://localhost:5500/index.html** for the
-raw backend health check. Serve it on port 5500 as shown; opening a file directly from disk will be blocked
-by the browser.
+The first run seeds demo users with the password `demo1234`; see `DataSeeder.java`. Use these accounts only with a disposable local database.
 
-## 5. Explore the prototype
+## API overview
 
-Sign in at `login.html` with a **real seeded account** — this now calls the actual backend:
+Authenticated requests use `Authorization: Bearer <sessionToken>`. Tenant identity comes from the resolved session, not a client-supplied tenant ID.
 
-- `security.admin@aegis.dev` / `demo1234` (Security Admin, "Platform" tenant), or
-- `priya.nair@northwind.io` / `demo1234` (Tenant Admin, "Northwind Retail"), or
-- any other user listed in `backend/src/main/java/com/ato/containment/config/DataSeeder.java`
-
-Every seeded account uses the password `demo1234`. From the dashboard:
-
-| Page | What it shows |
+| Area | Routes |
 |---|---|
-| Dashboard | Account/session/incident metrics, a recent-events timeline, a risk-level breakdown — **sample data** |
-| Users & Accounts | **Real data**: every user in your own tenant only, fetched from `GET /api/users` |
-| Account details | **Partly real**: name/email/tenant/role/status/created date come from `GET /api/users/{id}`; risk score, signals, login history, and sessions further down the page are still sample data |
-| Sessions, Risk Detection, Incidents, Containment, Recovery, Audit Logs | **Sample data** — unchanged from the earlier prototype; these backend modules don't exist yet |
+| Health | `GET /api/health` |
+| Authentication | `POST /api/auth/register`, `POST /api/auth/login`, `POST /api/auth/logout` (revokes a supplied valid token), `POST /api/auth/logout-all`, `GET /api/auth/me`, `PUT /api/auth/password` |
+| Tenant | `GET /api/tenants/me` |
+| Users | `GET /api/users`, `GET /api/users/{id}`, `POST /api/users`, `PUT /api/users/{id}`, `DELETE /api/users/{id}` |
+| Sessions | `GET /api/sessions`, `DELETE /api/sessions/{id}`, `DELETE /api/sessions` |
+| Risk and events | `GET /api/risk-assessments`, `GET /api/security-events` |
+| Incidents | `GET /api/incidents`, `GET /api/incidents/{id}`, `POST /api/incidents/{id}/investigate`, `/contain`, `/recover`, `/close` |
+| Recovery | `POST /api/recovery/request`, `GET /api/recovery/{id}/status`, `POST /api/recovery/{id}/verify`, `POST /api/recovery/{id}/complete`, `GET /api/recovery/admin?userId=...` |
 
-Try logging in as a user from one tenant (e.g. `priya.nair@northwind.io`, Northwind Retail) and note that
-**Users & Accounts only ever shows Northwind's users** — logging in as `maria.f@brightfinance.com` instead
-shows only Bright Finance's users. That's tenant isolation working, not a bug.
+All endpoints except health, registration, login, logout, and the self-service recovery flow require a valid bearer token. User administration, incident lifecycle changes, and recovery-history access require a tenant or security admin. List and filter parameters are documented in [docs/05-api-design.md](docs/05-api-design.md).
 
-## 6. Test tenant isolation
+## Tests
 
-Automated tests (see "Run the backend" above — `mvn test`):
-
-- `UserServiceTenantIsolationTest` — proves the repository/service layer denies a cross-tenant lookup
-- `UserControllerTenantIsolationTest` — proves the same thing over HTTP (returns 404), and proves a
-  client-supplied `tenantId` query parameter has no effect
-
-To see it manually with `curl` (the login response includes a bearer token — grab it with `jq`, or just copy
-it by hand from the response):
+Run the backend test suite from `backend/`:
 
 ```bash
-# Log in as a Northwind user and grab the session token
-TOKEN=$(curl -s -H "Content-Type: application/json" \
-  -d '{"email":"priya.nair@northwind.io","password":"demo1234"}' \
-  http://localhost:8080/api/auth/login | jq -r .sessionToken)
-
-# List users -- only Northwind's users come back
-curl -H "Authorization: Bearer $TOKEN" http://localhost:8080/api/users
-
-# Copy a user id from a DIFFERENT tenant (e.g. a Bright Finance user) and try it:
-curl -H "Authorization: Bearer $TOKEN" http://localhost:8080/api/users/<a-bright-finance-user-id>
-# -> 404, even though that id genuinely exists -- just not in Priya's tenant
+mvn test
 ```
 
-(No `jq`? Just run the login `curl` without the `TOKEN=`/`jq` part, copy the `sessionToken` value from the
-printed JSON by hand, and paste it into the `Authorization: Bearer ...` header yourself.)
+The tests cover authentication, session behavior, tenant isolation, risk scoring and replay detection, security events, incident and containment behavior, recovery, and controller responses. The separate shell health check in `tests/health-check.sh` requires a running backend. The Postman collection is in `tests/postman/`.
 
-## 7. Test the health endpoint
+The latest local `mvn test` run completed on October 29, 2026: 87 tests passed, with no failures, errors, or skips. It ran on Java 24.0.2 using the project's Java 17 compilation target. MySQL-backed startup and the browser workflow were not exercised in that run.
 
-```bash
-curl http://localhost:8080/api/health
-```
+## Project layout
 
-Expected response:
-
-```json
-{"status":"UP","service":"ato-containment-service","database":"UP","timestamp":"2026-01-01T10:00:00.000Z"}
-```
-
-- `status: "DEGRADED"` with `database: "DOWN"` means the app runs but cannot reach MySQL.
-- In the browser, `index.html` shows a green **Backend is running** status. Click **Check backend again** to re-test.
-- Or run the smoke test: `./tests/health-check.sh`
-
-On Windows PowerShell use `curl.exe` instead of `curl`.
-
-## 8. Test with Postman
-
-1. Open Postman → **Import** → select both files in `tests/postman/`:
-   `ato-containment.postman_collection.json` and `ato-local.postman_environment.json`.
-2. Select the **ATO Local** environment (top-right dropdown) — it sets `baseUrl` to `http://localhost:8080`.
-3. With the backend running, open the **Health** folder and click **Send** on each request, or run the whole
-   collection with **Run**. Both requests include automated checks (status code, response fields).
-
-New endpoints should be added to this same collection as they're built.
-
-## 9. Logging
-
-Requests are logged to the console and to `backend/logs/ato-containment.log` (one line per request: method,
-path, status, duration). Log levels are set in `application.properties`
-(`logging.level.com.ato.containment=DEBUG`). Passwords, tokens and headers are never logged — see
-`docs/06-threat-scenarios.md` (TS-8) for why that matters.
-
-## 10. Design documents
-
-Before adding new features, read [`docs/README.md`](docs/README.md) — it links the full design: actors,
-architecture, the module list, database design, the planned API surface, the ATO detection/containment/
-recovery workflow, and the threat scenarios those features are meant to stop.
+- `backend/` — Spring Boot API and unit/controller tests
+- `frontend/` — browser interface
+- `database/` — local initialization and draft schema
+- `docs/` — workflow, architecture, API, data model, and threat scenarios
+- `tests/` — smoke check and Postman collection
+- `terraform/` — reserved; no AWS resources are defined or deployed

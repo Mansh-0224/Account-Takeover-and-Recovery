@@ -1,8 +1,6 @@
 # 04. Basic Database Design
 
-MySQL. The full draft DDL is in [`database/schema_draft.sql`](../database/schema_draft.sql).
-It is a **design draft and is not run by the application yet**. In Phase 2 it will become JPA entities and/or
-migration scripts (for example Flyway).
+MySQL. The full draft DDL is in [`database/schema_draft.sql`](../database/schema_draft.sql). The application currently creates or updates JPA tables with Hibernate; the draft DDL is not the schema used at startup. Database migrations have not been added.
 
 ## 1. ER diagram
 
@@ -59,10 +57,11 @@ erDiagram
 8. **Indexes** cover the common lookups: user + time for `login_events`, tenant + status for `incidents`,
    user + status for `sessions`, tenant + time for `audit_logs`.
 
-## 4. Implementation status (Phase 2)
+## 4. Current implementation status
 
-`tenants` and `users` are now real, implemented tables (see `backend/.../model/Tenant.java` and `User.java`).
-Building them surfaced two deliberate departures from the draft above, made for simplicity at this stage:
+JPA entities currently cover tenants, roles, users, sessions, security events, risk assessments, incidents, and recovery requests. `database/init.sql` creates the local database and user; Hibernate manages application tables. The following design areas remain without corresponding JPA implementation: per-tenant settings, known devices, refresh tokens, login-event history, step-up challenges, containment-action records, notifications, and a separate audit-log table.
+
+Two deliberate differences from this draft are:
 
 - **A separate `roles` table**, rather than a plain `role VARCHAR` column with a `CHECK` constraint. The
   role's name doubles as its primary key (`USER`, `TENANT_ADMIN`, `SECURITY_ADMIN`), which is a small, real
@@ -73,5 +72,4 @@ Building them surfaced two deliberate departures from the draft above, made for 
   it find the right user (and, from there, their tenant) in one lookup. Per-tenant uniqueness would need a
   tenant selector on the login screen; deferred for now.
 
-Everything else in this document (`known_devices`, `sessions`, `risk_assessments`, `incidents`, etc.) is still
-just the design draft — none of those tables exist yet.
+Security events are stored in `security_events`; there is no independent audit-log table. Device/IP history is stored on sessions and security events rather than in a `known_devices` table.

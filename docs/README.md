@@ -1,6 +1,6 @@
 # Design Documentation
 
-Design for the **Account Takeover (ATO) Containment and Recovery Service for Small SaaS Applications**.
+Design and implementation notes for the **Account Takeover (ATO) Containment and Recovery Service for Small SaaS Applications**. The API reference and database status section distinguish current code from planned design.
 Diagrams use [Mermaid](https://mermaid.js.org/); they render on GitHub and in the VS Code Markdown preview
 (with the "Markdown Preview Mermaid Support" extension).
 
@@ -20,26 +20,20 @@ Diagrams use [Mermaid](https://mermaid.js.org/); they render on GitHub and in th
   logged-in user's token, never from the request.
 - **The project includes a small demo SaaS** (users, login, sessions) so the ATO features have something to protect.
   Later it could be exposed as an integration API for other SaaS apps.
-- **Email and geo-IP are simulated locally** (emails are written to a `notifications` table; country and device
-  come from request headers in the dev profile). Real services come with AWS.
-- **Tokens**: short-lived JWT access token tied to a server-side session, plus a rotating refresh token.
-  Revoking the session kills access immediately. This is what makes containment work.
+- **Recovery delivery**: the current local verification provider does not send email or SMS. Test codes are returned only when `APP_RECOVERY_EXPOSE_TEST_CODE=true` is explicitly set.
+- **Sessions**: bearer tokens are opaque random values; the database stores their SHA-256 hashes. The current implementation does not use JWT or refresh-token rotation.
+- **Location and device signals**: the risk engine uses request-provided device and simulated-location values; it does not perform geo-IP lookup.
 
-## Suggested phase roadmap
+## Suggested roadmap
 
-This is a suggestion. Adjust it to your mentor's plan.
+This roadmap describes remaining design work, not a claim that these items are all unfinished. Implemented behavior is summarized in the README and API reference.
 
 | Phase | Deliverable |
 |---|---|
-| 0 | Design documents (this folder) |
-| 1 | Local environment: backend, frontend, MySQL, health check |
-| 2 | Tenants, users, authentication (register/login, BCrypt, JWT) |
-| 3 | Session management and refresh tokens |
-| 4 | Risk scoring / ATO detection on login |
-| 5 | Token replay detection |
-| 6 | Incident management and audit logging |
-| 7 | Account containment |
-| 8 | Account recovery and step-up verification |
-| 9 | Tenant isolation hardening and cross-tenant tests |
-| 10 | Frontend dashboards and attacker simulator |
-| 11 | AWS deployment with Terraform |
+| Area | Remaining work |
+|---|---|
+| Authentication | Add a real step-up challenge and consider refresh-token rotation |
+| Recovery | Add a real verification delivery provider and complete integration checks |
+| Frontend | Replace dashboard and account-history placeholders; wire manual containment only if required |
+| Operations | Add database migrations and production deployment configuration |
+| AWS | No infrastructure or EBS snapshot recovery workflow is specified in the current application requirements; define the AWS scope before adding either |

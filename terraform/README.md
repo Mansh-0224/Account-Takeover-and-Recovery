@@ -1,3 +1,3 @@
 # Terraform
 
-Reserved for AWS infrastructure. Nothing is provisioned in Phase 1 and no AWS account is needed yet.
+No Terraform resources are defined. AWS hosting and EBS snapshot recovery are outside the implemented local application; add infrastructure only after the required AWS scope is agreed and reviewed. No resources have been created or deployed.

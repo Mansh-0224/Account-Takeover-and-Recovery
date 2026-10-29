@@ -37,11 +37,11 @@ class IncidentServiceTest {
     @BeforeEach
     void setUp() {
         incidentService = new IncidentService(incidentRepository);
-        when(incidentRepository.save(any(Incident.class))).thenAnswer(inv -> inv.getArgument(0));
     }
 
     @Test
     void newSignal_withNoExistingUnresolvedIncident_opensANewOne() {
+        stubSave();
         when(incidentRepository.findByTenantIdAndUserIdAndStatusIn(eq("tenant-a"), eq("user-9"), any()))
                 .thenReturn(List.of());
 
@@ -54,6 +54,7 @@ class IncidentServiceTest {
 
     @Test
     void secondSignal_whileUnresolvedIncidentExists_updatesInsteadOfDuplicating() {
+        stubSave();
         Incident existing = new Incident();
         existing.setTenantId("tenant-a");
         existing.setUserId("user-9");
@@ -76,6 +77,7 @@ class IncidentServiceTest {
 
     @Test
     void closedIncident_doesNotCountAsUnresolved_soANewOneOpens() {
+        stubSave();
         // The repository query itself only returns OPEN/INVESTIGATING/CONTAINED,
         // so a CLOSED incident for this user simply isn't in the "existing" list.
         when(incidentRepository.findByTenantIdAndUserIdAndStatusIn(eq("tenant-a"), eq("user-9"), any()))
@@ -128,10 +130,7 @@ class IncidentServiceTest {
 
     @Test
     void normalUser_cannotRunLifecycleActions() {
-        Incident incident = freshIncident();
-        when(incidentRepository.findByIdAndTenantId(incident.getId(), "tenant-a")).thenReturn(Optional.of(incident));
-
-        assertThatThrownBy(() -> incidentService.investigate(NORMAL_USER, incident.getId()))
+        assertThatThrownBy(() -> incidentService.investigate(NORMAL_USER, "incident-1"))
                 .isInstanceOf(ForbiddenException.class);
     }
 
@@ -153,5 +152,9 @@ class IncidentServiceTest {
         incident.setStatus(IncidentStatus.OPEN);
         incident.setDescription("Test incident.");
         return incident;
+    }
+
+    private void stubSave() {
+        when(incidentRepository.save(any(Incident.class))).thenAnswer(inv -> inv.getArgument(0));
     }
 }
