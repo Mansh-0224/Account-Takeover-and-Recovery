@@ -1,195 +1,150 @@
 # Account Takeover Containment and Recovery Service
 
-CERT-In internship project for detecting suspicious account activity, containing compromised accounts, and recovering access for small SaaS applications.
+CERT-In internship project exploring account takeover detection, account containment, and account recovery for small SaaS applications with limited security staff.
 
-## Current implementation
+## Project status and technology
 
-The Java 17 / Spring Boot backend uses MySQL and bearer-token sessions. It includes tenant-scoped user management; BCrypt password hashing; session creation, listing, and revocation; login risk assessments and token-replay response; security-event search; incident lifecycle actions; automatic account containment; and a self-service recovery workflow. The frontend is plain HTML, CSS, and JavaScript and calls the backend for authentication, users, sessions, risk assessments, incidents, recovery, and security events.
+The local application uses Java 17, Spring Boot 3.5, Maven, MySQL, and Spring Data JPA. Its browser interface is built with HTML, CSS, and JavaScript; it is not a separate frontend framework.
 
-Recovery codes currently have no email or SMS delivery provider. For safety, the API returns the same generic response for known and unknown email addresses and does not expose a code or request ID unless `APP_RECOVERY_EXPOSE_TEST_CODE=true` is explicitly set for local testing. Do not enable that setting outside a private development environment. AWS infrastructure and EBS snapshot recovery are not implemented. See [the API reference](docs/05-api-design.md) and [design documents](docs/README.md).
+Implemented backend features include tenant-scoped accounts, bearer-token sessions, login risk scoring, token-replay response, database-backed security events, incident management, automatic account containment, and self-service recovery. Recovery delivery is local-only; there is no email or SMS provider. Medium-risk logins are flagged for step-up verification, but no challenge is implemented. AWS infrastructure, EBS snapshot recovery, refresh-token rotation, and a separate audit-log service are not implemented.
 
-Some screens remain visual examples: the dashboard metrics, containment page, and account login-history section use sample data. The containment page is not wired to a manual containment endpoint; containment currently runs automatically for high-risk login or detected token replay.
+## Authentication, sessions, and tenant access
+
+- Registration creates a new tenant and its first tenant admin. Passwords must be at least eight characters and are hashed with BCrypt.
+- Successful login or registration creates a 256-bit random opaque bearer token. The server returns the raw token once and stores only its SHA-256 hash in the database. Tokens are not JWTs; there is no refresh-token endpoint.
+- Authenticated API requests send `Authorization: Bearer <sessionToken>`. The server resolves the session, user, tenant, and role from the stored token hash, and checks that the session is active and unexpired. Sessions expire after 24 hours.
+- The browser frontend stores the bearer token in `localStorage`. This is suitable only for the local prototype; do not treat the frontend as production-hardened.
+- Users can list and revoke their own sessions, log out of the current session, or log out everywhere. Password changes verify the current password, require a new password of at least eight characters, keep the current session, and revoke the user’s other sessions.
+- Disabled, contained, and recovery-in-progress accounts cannot log in. Tenant identity is resolved from the session, not a tenant ID supplied by the caller. User records are tenant-scoped; a cross-tenant user ID returns 404. User changes, incident lifecycle actions, and recovery-history access require a tenant or security admin.
+
+## Risk detection and security events
+
+The rule-based risk engine (not machine learning) uses these signals:
+
+- New `X-Device-Id` identifier: +20
+- Previously unseen location value: +20. The value comes from the `X-Simulated-Location` request header; the application does not perform geo-IP lookup.
+- Three or more accumulated failed logins: +20
+- Password changed within the previous 10 minutes: +30
+- Three or more existing active sessions: +25
+- Session token reused from a different device or IP within 10 minutes: +50
+
+Scores below 30 are LOW, 30–59 MEDIUM, and 60 or higher HIGH. LOW logins proceed. MEDIUM logins proceed with `stepUpRequired` flagged in the response; no challenge is enforced. HIGH logins are blocked and trigger account containment. A token-replay detection also revokes the affected session and contains the account. There is a limitation in the current replay flow: session resolution updates `lastSeen` before the replay detector checks the 10-minute window, effectively measuring from the current request. A device/IP mismatch can therefore be treated as replay even when the previous use was older than 10 minutes. The existing unit tests do not verify this integrated call order; do not rely on the 10-minute window until it is corrected.
+
+The security-event types recorded by the application are `LOGIN_SUCCESS`, `LOGIN_FAILURE`, `SESSION_CREATED`, `SESSION_REVOKED`, `PASSWORD_CHANGED`, `RECOVERY_STARTED`, `RECOVERY_FAILED`, `RECOVERY_COMPLETED`, `ATO_DETECTED`, `ACCOUNT_CONTAINED`, and `TOKEN_REPLAY`. `GET /api/security-events` is scoped to the caller’s tenant and supports `userId`, `eventType`, `severity`, `from`, and `to` filters, plus pagination (`page` defaults to 0; `size` defaults to 25 and is capped at 100). The Audit Logs page displays these security events; it is not backed by a separate audit-log table.
+
+Request logging records the method, request path, response status, and duration. It omits headers, query strings, and request bodies. Passwords and raw session tokens are not written by the request-logging filter.
+
+## Incidents, containment, and recovery
+
+Incidents are database-backed. Allowed lifecycle transitions are `OPEN → INVESTIGATING`, `OPEN → CONTAINED`, `INVESTIGATING → CONTAINED`, `CONTAINED → RECOVERED`, and `RECOVERED → CLOSED`. High-risk login and token-replay detection automatically revoke active sessions, set the account to `CONTAINED`, record security events, and open or update an incident. Recovery completion moves contained incidents for that account to `RECOVERED`.
+
+The incident endpoint `POST /api/incidents/{id}/contain` changes the **incident status**; it does not manually contain the account. There is no API to manually contain or release an account. The Containment page’s action buttons are sample controls and do not perform containment.
+
+Self-service recovery uses a six-digit code tied to a UUID recovery-request ID. The code is stored as a SHA-256 hash, expires after 15 minutes, and five incorrect verification attempts fail that request and record a recovery-abuse incident. The five-attempt limit is per request; starting a newer request expires an older pending request, and no request-rate limiter is configured. Verification is idempotent after success; a completed request cannot be completed again. Completion requires a verified, unexpired request and a new password of at least eight characters. It activates the account, clears its failed-login count, revokes all existing sessions, updates contained incidents, records the recovery event, and creates a new session. Recovery history is restricted to tenant/security admins and the caller’s tenant.
+
+No email or SMS delivery provider or recovery-request rate limiter is configured. A valid request immediately changes the account to `RECOVERY_IN_PROGRESS`. By default, `APP_RECOVERY_EXPOSE_TEST_CODE` is `false`, so `/api/recovery/request` returns the same generic response for matching and non-matching emails and includes neither a request ID nor a code. Since the local verification provider does not send messages, recovery cannot be completed in this default configuration and the account remains unable to log in until recovery is completed. If `APP_RECOVERY_EXPOSE_TEST_CODE=true`, a request for a matching, non-disabled account returns its request ID and local test code; unknown and disabled accounts still receive the generic response. This opt-in reveals account existence and must only be used on a private local development machine, never in a public or production environment. Treat a recovery-request ID like a bearer credential.
+
+## Frontend coverage
+
+The login and registration forms call the backend. The main Users, Sessions, Risk Detection, Incidents, Recovery, and Audit Logs pages also load backend data. The self-service forgot-password flow uses the recovery API. On the account detail page, the profile and latest risk assessment are live, but its login-history section **and embedded Active sessions panel** are sample data. Dashboard content, including its metrics, and the Containment page are visual examples; the decorative panels on the login and registration pages are static as well.
 
 ## Requirements
 
 - JDK 17 or newer
 - Maven 3.9 or newer
 - MySQL 8
-- Python 3 or a local static-file server for the frontend
+- Python 3 or another local static-file server for the frontend
+- A modern browser
 
 ## Local setup
 
-HEAD
-### Authentication & sessions
-
-- Passwords are hashed with BCrypt — never stored or logged in plain text.
-- A session token is an opaque, cryptographically random value. The server only ever stores its SHA-256 hash
-  (`sessions.token_hash`) — the raw token is shown to the client exactly once, in the login/register response.
-- The token is sent as `Authorization: Bearer <token>` on every request; `CurrentSessionResolver` looks it up,
-  checks it's `ACTIVE` and not expired (24h lifetime), and resolves the user/tenant/role from there.
-- A non-`ACTIVE` account (`DISABLED`, `CONTAINED`, `RECOVERY_IN_PROGRESS`) cannot log in, even with the correct
-  password.
-
-### Security events, risk scoring & token replay 
-
-- Every login, session, and password-change event is written to an append-only `security_events` table —
-  10 event types, searchable by type/severity/user/date range via `GET /api/security-events`. Three of those
-  types (`RECOVERY_STARTED/FAILED/COMPLETED`) exist in the schema but nothing triggers them yet — no recovery
-  module is built.
-- `risk/RiskEngine` scores every login with 6 rule-based signals (no ML), stored as a `RiskAssessment`:
-  new device +20, unusual location +20, multiple failed logins +20, recent password change +30, many active
-  sessions +25, token replay +50 — classified LOW (0–29) / MEDIUM (30–59) / HIGH (60+).
-- The login flow applies that score: **LOW** allows normally, **MEDIUM** allows through but is clearly flagged
-  as needing step-up verification (no real OTP/challenge channel exists, so this is never silently hidden),
-  **HIGH** blocks the login and automatically contains the account.
-- `risk/TokenReplayDetector` flags a session token reused from a different device/IP within 10 minutes of last
-  use, revokes that session, and contains the account. This project has no real JWTs, so the session's own id
-  is used as the practical `jti` equivalent — documented in the class itself.
-- Failed logins are tracked (`failedLoginCount`, `lastFailedLoginAt`) and feed the risk engine's
-  MULTIPLE_FAILED_LOGINS signal.
-- Sessions can be listed, revoked individually, or revoked all at once (`GET`/`DELETE /api/sessions`,
-  `DELETE /api/sessions/{id}`); changing your password revokes every other session automatically.
-- Nothing logs a password, token, OTP, or `Authorization` header — see `RequestLoggingFilter` and the
-  `AuthService`/`SessionService` log lines, which log identifiers (user id, session id, IP) only.
-
-### Tenant isolation
-
-- A user's tenant is decided once, at login, from their database record — never from anything the client sends.
-- It's then stored server-side in an `HttpSession` and read back on every request via `CurrentSession`.
-- Every user lookup goes through `UserRepository.findByIdAndTenantId(id, tenantId)`. If an id belongs to a
-  different tenant, the query finds nothing — the caller gets the same 404 as a truly nonexistent id, never a
-  glimpse of another tenant's data.
-- Proven in `backend/src/test/java/.../UserServiceTenantIsolationTest.java` (service layer) and
-  `UserControllerTenantIsolationTest.java` (HTTP layer, including a test that a spoofed `tenantId` query
-  parameter has no effect).
-
-## Structure
-
-```text
-ato-containment-service/
-├── docs/        Design documents (architecture, DB design, API list, workflow, threats)
-├── backend/     Spring Boot (Java 17, Maven) REST API — tenants, roles, users, sessions
-├── frontend/    Visual prototype (HTML/CSS/JS) — Users/Account details wired to real data, rest is mock
-├── database/    Local setup script + draft schema for upcoming features
-├── tests/       Smoke test script + Postman collection
-├── terraform/   Reserved for AWS infrastructure (later)
-├── .env.example Example environment variables
-├── README.md
-└── .gitignore
-```
-
-Backend packages: `model` (JPA entities), `repository` (Spring Data), `service` (business logic incl. tenant
-isolation), `controller` (REST), `dto` (request/response shapes, never expose entities directly),
-`security` (session-based tenant resolution), `config` (CORS, data seeding), `exception`. Still-empty
-placeholders for upcoming work: `risk/`, `incident/`, `recovery/`, `logging/` (logging itself is implemented;
-the folder is reserved for a future audit-log module).
-
-## Tech stack
-
-**In use now**
-- Backend: Java 17, Spring Boot, Maven, Spring Web, Spring Data JPA
-- Database: MySQL
-- Auth: server-side sessions (`HttpSession`) set at login, read via a small `CurrentSession` helper — no JWTs
-  yet, no `spring-boot-starter-security` (which would auto-lock every endpoint); just
-  `spring-security-crypto` for BCrypt password hashing
-- Frontend: plain HTML, CSS, JavaScript (no framework); two pages call the real API with `fetch`
-- API: REST (JSON), tested with Postman and a shell smoke-test script
-- Logging: SLF4J + a request-logging filter, output to console and file
-
-**Planned**
-- JWT access/refresh tokens and multi-device session management (replacing the current single `HttpSession`)
-- A rule-based risk-scoring engine for login and token-replay detection
-- Incident management, account containment, and account recovery (email OTP and admin-assisted) modules
-- An append-only security audit log
-- AWS deployment via Terraform (ECS/Fargate or Elastic Beanstalk, RDS for MySQL, S3/CloudFront for the
-  frontend, SES for email, CloudWatch for logs, Secrets Manager for secrets) — see the AWS mapping table in
-  [`docs/02-architecture-and-modules.md`](docs/02-architecture-and-modules.md)
-
-## 1. Prerequisites
-
-- **JDK 17 or newer**: check with `java -version`
-- **Maven 3.9+**: check with `mvn -version`
-- **MySQL 8.0+**: check with `mysql --version`
-- **Python 3** (to serve the frontend) or the VS Code *Live Server* extension
-- A modern browser
-
-## 2. Configure MySQL
-
-1. Make sure MySQL (or MariaDB) is running.
-2. From the project root, create the local database and user (enter your MySQL root password when asked):
-
-1. Start MySQL. From the repository root, initialize the local database:
-d352626 (Harden recovery access, fix tests, and update project docs)
+1. Start MySQL. From the repository root, initialize the local database and development user:
 
    ```bash
    mysql -u root -p < database/init.sql
    ```
 
-   This creates `ato_db` and the local development user in `database/init.sql`. Change those example credentials before using the database for anything beyond local development.
+   In Windows PowerShell, run through Command Prompt: `cmd /c "mysql -u root -p < database/init.sql"`. The script creates `ato_db` and the sample local user `ato_user` with password `ato_password`. These credentials are for a disposable local database only; change them before any broader use.
 
-2. Start the backend:
+2. Start the backend from the `backend/` directory:
 
    ```bash
+   mvn spring-boot:run
+   ```
+
+   The API listens on `http://localhost:8080`. Configure `DB_URL`, `DB_USERNAME`, and `DB_PASSWORD` as process environment variables when overriding the local defaults in `application.properties`. Spring Boot does not load `.env` automatically; `.env.example` lists the variables.
+
+   For normal use, start it with the command above. To exercise self-service recovery locally, use this startup command instead, setting the opt-in before Spring Boot starts. In PowerShell, from the project root:
+
+   ```powershell
+   $env:APP_RECOVERY_EXPOSE_TEST_CODE = "true"
    cd backend
    mvn spring-boot:run
    ```
 
-   The API listens on `http://localhost:8080`. Set `DB_URL`, `DB_USERNAME`, and `DB_PASSWORD` in the process environment to override the local defaults. Spring Boot does not load `.env` automatically; `.env.example` is a reference.
+   Omit the environment-variable line for normal runs. Never enable test-code exposure on a public host.
 
-3. To exercise recovery in the local demo, set `APP_RECOVERY_EXPOSE_TEST_CODE=true` before starting the backend. For PowerShell:
-
-   ```powershell
-   $env:APP_RECOVERY_EXPOSE_TEST_CODE = "true"
-   mvn spring-boot:run
-   ```
-
-   Leave this unset for normal runs. The local verification provider does not send messages; without this opt-in, recovery cannot be completed until a delivery provider is added.
-
-4. In another terminal, serve the frontend:
+3. In another terminal, serve the frontend:
 
    ```bash
    cd frontend
    python -m http.server 5500
    ```
 
-   Open `http://localhost:5500/login.html`. The backend allows the documented local frontend origins in `application.properties`.
+   Open `http://localhost:5500/login.html`. The backend’s default CORS configuration permits this origin. `http://localhost:5500/index.html` checks the backend and database health.
 
-The first run seeds demo users with the password `demo1234`; see `DataSeeder.java`. Use these accounts only with a disposable local database.
+On an empty database, `DataSeeder` creates sample tenants and users; all seeded users use `demo1234`. Examples are `priya.nair@northwind.io` (Northwind tenant admin), `maria.f@brightfinance.com` (Bright Finance tenant admin), and `security.admin@aegis.dev` (security admin). Other seeded users are listed in `backend/src/main/java/com/ato/containment/config/DataSeeder.java`. Use these accounts only with a disposable local database.
 
-## API overview
+Hibernate uses `ddl-auto=update` to create or update entity tables. The project does not yet use database migrations, and the local configuration and seed credentials are not production-ready.
 
-Authenticated requests use `Authorization: Bearer <sessionToken>`. Tenant identity comes from the resolved session, not a client-supplied tenant ID.
+## API and design references
 
-| Area | Routes |
+Authenticated requests use `Authorization: Bearer <sessionToken>`. The route list, roles, request filters, and response behavior are in the [API reference](docs/05-api-design.md). Health, registration, login, logout, and the public self-service recovery routes do not require a valid bearer token. Logout revokes a supplied valid token when present; other protected routes require authentication, with the administrative actions described above restricted by role.
+
+| Area | Main routes |
 |---|---|
 | Health | `GET /api/health` |
-| Authentication | `POST /api/auth/register`, `POST /api/auth/login`, `POST /api/auth/logout` (revokes a supplied valid token), `POST /api/auth/logout-all`, `GET /api/auth/me`, `PUT /api/auth/password` |
-| Tenant | `GET /api/tenants/me` |
-| Users | `GET /api/users`, `GET /api/users/{id}`, `POST /api/users`, `PUT /api/users/{id}`, `DELETE /api/users/{id}` |
+| Authentication | `POST /api/auth/register`, `POST /api/auth/login`, `POST /api/auth/logout`, `POST /api/auth/logout-all`, `GET /api/auth/me`, `PUT /api/auth/password` |
+| Tenant and users | `GET /api/tenants/me`; `GET/POST /api/users`, `GET/PUT/DELETE /api/users/{id}` |
 | Sessions | `GET /api/sessions`, `DELETE /api/sessions/{id}`, `DELETE /api/sessions` |
-| Risk and events | `GET /api/risk-assessments`, `GET /api/security-events` |
-| Incidents | `GET /api/incidents`, `GET /api/incidents/{id}`, `POST /api/incidents/{id}/investigate`, `/contain`, `/recover`, `/close` |
+| Risk and security events | `GET /api/risk-assessments`, `GET /api/security-events` |
+| Incidents | `GET /api/incidents`, `GET /api/incidents/{id}`, `POST /api/incidents/{id}/investigate`, `POST /api/incidents/{id}/contain`, `POST /api/incidents/{id}/recover`, `POST /api/incidents/{id}/close` |
 | Recovery | `POST /api/recovery/request`, `GET /api/recovery/{id}/status`, `POST /api/recovery/{id}/verify`, `POST /api/recovery/{id}/complete`, `GET /api/recovery/admin?userId=...` |
 
-All endpoints except health, registration, login, logout, and the self-service recovery flow require a valid bearer token. User administration, incident lifecycle changes, and recovery-history access require a tenant or security admin. List and filter parameters are documented in [docs/05-api-design.md](docs/05-api-design.md).
+Project design documents:
 
-## Tests
+- [Documentation index](docs/README.md)
+- [Actors and scope](docs/01-actors-and-scope.md)
+- [Architecture and modules](docs/02-architecture-and-modules.md)
+- [ATO workflow](docs/03-ato-workflow.md)
+- [Database design](docs/04-database-design.md)
+- [API reference](docs/05-api-design.md)
+- [Threat scenarios](docs/06-threat-scenarios.md)
+- [Terraform status](terraform/README.md)
 
-Run the backend test suite from `backend/`:
+The database design document is a design draft; `database/schema_draft.sql` is not the runtime schema. Terraform contains no AWS resources. EBS snapshot recovery and AWS deployment are not implemented.
+
+## Testing and manual checks
+
+Run the backend unit and controller test suite from `backend/`:
 
 ```bash
 mvn test
 ```
 
-The tests cover authentication, session behavior, tenant isolation, risk scoring and replay detection, security events, incident and containment behavior, recovery, and controller responses. The separate shell health check in `tests/health-check.sh` requires a running backend. The Postman collection is in `tests/postman/`.
+The latest recorded Surefire reports are from October 29, 2026: 87 tests, 0 failures, 0 errors, and 0 skipped. That run used Java 24.0.2 with the project’s Java 17 compilation target. It did not verify startup against MySQL or the browser workflow.
 
-The latest local `mvn test` run completed on October 29, 2026: 87 tests passed, with no failures, errors, or skips. It ran on Java 24.0.2 using the project's Java 17 compilation target. MySQL-backed startup and the browser workflow were not exercised in that run.
+With the backend running, call `curl http://localhost:8080/api/health` or run `tests/health-check.sh`. On Windows, use Git Bash for the script or run `curl.exe http://localhost:8080/api/health`. The Postman collection and **ATO Local** environment are in `tests/postman/`; import both and select that environment. The collection covers health, authentication, users/tenant isolation, sessions, security events, and risk assessments; it does not cover the later incident or recovery routes.
 
-## Project layout
+To check tenant isolation manually, log in as a user in one tenant, use the returned session token with `GET /api/users`, then request a user ID from another tenant. That cross-tenant lookup should return 404. Automated service and controller tests cover tenant isolation, including ignoring a client-supplied `tenantId` query parameter.
 
-- `backend/` — Spring Boot API and unit/controller tests
-- `frontend/` — browser interface
-- `database/` — local initialization and draft schema
-- `docs/` — workflow, architecture, API, data model, and threat scenarios
-- `tests/` — smoke check and Postman collection
+## Logging and project layout
+
+Application logs go to the console and `backend/logs/ato-containment.log` when the backend is launched from `backend/`. Request logs omit headers, query strings, and request bodies.
+
+- `backend/` — Spring Boot API, JPA entities, services, controllers, and tests
+- `frontend/` — HTML, CSS, and JavaScript interface
+- `database/` — local database initialization and draft schema
+- `docs/` — architecture, workflow, database, API, and threat documentation
+- `tests/` — health check and Postman collection
 - `terraform/` — reserved; no AWS resources are defined or deployed
