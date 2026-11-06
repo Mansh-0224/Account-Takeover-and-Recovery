@@ -24,12 +24,10 @@ Diagrams use [Mermaid](https://mermaid.js.org/); they render on GitHub and in th
 - **Sessions**: bearer tokens are opaque random values; the database stores their SHA-256 hashes. The current implementation does not use JWT or refresh-token rotation.
 - **Location and device signals**: the risk engine uses request-provided device and simulated-location values; it does not perform geo-IP lookup.
 
-## Suggested roadmap
+## Remaining design work
 
 This roadmap describes remaining design work, not a claim that these items are all unfinished. Implemented behavior is summarized in the README and API reference.
 
-| Phase | Deliverable |
-|---|---|
 | Area | Remaining work |
 |---|---|
 | Authentication | Add a real step-up challenge and consider refresh-token rotation |

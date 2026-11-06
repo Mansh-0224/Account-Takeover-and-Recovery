@@ -4,8 +4,8 @@
  * tenant — that's tenant isolation, enforced server-side, not something this
  * script has to worry about.
  *
- * Risk level/score aren't modeled by the backend yet (that's a later phase),
- * so those columns just show "—" for now instead of made-up numbers.
+ * The users API response does not include each user's risk level or score,
+ * so those columns show "—" instead of made-up numbers.
  */
 document.addEventListener("DOMContentLoaded", async () => {
     const tbody = document.getElementById("users-table-body");

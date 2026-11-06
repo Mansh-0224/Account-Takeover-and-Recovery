@@ -1,6 +1,6 @@
 # Account Takeover Containment and Recovery Service
 
-CERT-In internship project exploring account takeover detection, account containment, and account recovery for small SaaS applications with limited security staff.
+Project exploring account takeover detection, account containment, and account recovery for small SaaS applications with limited security staff.
 
 ## Project status and technology
 

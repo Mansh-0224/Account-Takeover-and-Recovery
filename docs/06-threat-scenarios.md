@@ -1,7 +1,7 @@
 # 06. Threat Scenarios
 
 Each scenario states the attack, how it's simulated locally, what should detect it, and the expected response.
-These become the test plan for later phases (`tests/`).
+Use these scenarios to guide security tests in `tests/`.
 
 ## TS-1: Credential stuffing / brute force
 

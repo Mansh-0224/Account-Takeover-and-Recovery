@@ -1,5 +1,5 @@
 /**
- * Logging support. Holds the request logging filter now; the database-backed
- * security audit log is added in a later phase.
+ * Logging support. Holds the request logging filter. Security events are
+ * recorded separately; a separate database-backed audit log is not implemented.
  */
 package com.ato.containment.logging;

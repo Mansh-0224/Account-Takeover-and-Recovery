@@ -50,10 +50,9 @@ public class User {
     @Column(nullable = false, length = 30)
     private UserStatus status = UserStatus.ACTIVE;
 
-    // Failed-login tracking (Phase 3). Reset to 0 on every successful login.
-    // Nothing currently changes status based on this count -- that decision
-    // belongs to the risk-detection module, which does not exist yet. This
-    // just records the fact so a later phase (or an admin) has it to look at.
+    // Failed-login count contributes to the risk engine's
+    // MULTIPLE_FAILED_LOGINS signal and resets after a successful login.
+    // The count alone does not change account status.
     @Column(name = "failed_login_count", nullable = false)
     private int failedLoginCount = 0;
 

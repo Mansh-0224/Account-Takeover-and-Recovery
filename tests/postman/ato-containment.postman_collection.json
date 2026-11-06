@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "ATO Containment Service",
-    "description": "Collection for the ATO Containment Service API. Phase 3 uses bearer-token sessions: run 'Login' or 'Register' first (the test script saves the returned sessionToken as a collection variable), then every other request automatically sends it via the Authorization header. Seeded users are documented in backend DataSeeder.java. Phase 4 adds security-event search and risk-assessment history, both tenant-scoped automatically from the bearer token -- no tenantId parameter exists to pass. Log in first so {{sessionToken}} is set.",
+    "description": "Collection for the ATO Containment Service API. It uses bearer-token sessions: run 'Login' or 'Register' first (the test script saves the returned sessionToken as a collection variable), then every other request automatically sends it via the Authorization header. Seeded users are documented in backend DataSeeder.java. Security-event search and risk-assessment history are tenant-scoped automatically from the bearer token -- no tenantId parameter exists to pass. Log in first so {{sessionToken}} is set.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -84,7 +84,7 @@
       ]
     },
     {
-      "name": "Auth (Phase 2 & 3)",
+      "name": "Auth",
       "item": [
         {
           "name": "Register (new tenant + admin)",
@@ -236,7 +236,7 @@
       ]
     },
     {
-      "name": "Users (Phase 2 - tenant isolation)",
+      "name": "Users (tenant isolation)",
       "item": [
         {
           "name": "List users in my tenant (requires login first)",
@@ -326,7 +326,7 @@
       ]
     },
     {
-      "name": "Sessions (Phase 3)",
+      "name": "Sessions",
       "item": [
         {
           "name": "List my sessions",
@@ -434,7 +434,7 @@
       ]
     },
     {
-      "name": "Security Events (Phase 4)",
+      "name": "Security Events",
       "item": [
         {
           "name": "Search my tenant's events",
@@ -499,7 +499,7 @@
       ]
     },
     {
-      "name": "Risk Assessments (Phase 4)",
+      "name": "Risk Assessments",
       "item": [
         {
           "name": "List recent assessments (my tenant)",

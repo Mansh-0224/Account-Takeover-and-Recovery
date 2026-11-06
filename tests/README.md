@@ -8,5 +8,4 @@
   select the **ATO Local** environment, then run the collection.
   Add new requests here as new endpoints are built.
 
-Later phases will add API and end-to-end tests (including the attacker simulations from
-`docs/06-threat-scenarios.md`).
+Add API-level and end-to-end checks for the attacker scenarios in `docs/06-threat-scenarios.md` as those workflows are developed.

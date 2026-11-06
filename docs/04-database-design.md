@@ -53,7 +53,7 @@ erDiagram
    the application is responsible for always writing and reading UTC.
 6. **Emails** are stored lower-case and are unique per tenant, not globally.
 7. **Audit log is append-only:** the application role should get `INSERT` and `SELECT` only on `audit_logs`
-   (enforced when roles are set up in a later phase).
+   (enforce this by restricting database privileges when a limited application database role is configured).
 8. **Indexes** cover the common lookups: user + time for `login_events`, tenant + status for `incidents`,
    user + status for `sessions`, tenant + time for `audit_logs`.
 

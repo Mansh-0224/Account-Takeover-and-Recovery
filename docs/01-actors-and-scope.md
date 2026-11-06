@@ -14,7 +14,7 @@ to **detect** it, **stop the damage**, and **safely give the account back**. Thi
 
 | # | Decision | Reason |
 |---|---|---|
-| D1 | Single Spring Boot application (modular monolith) | Simple to build, run and explain in an internship |
+| D1 | Single Spring Boot application (modular monolith) | Simple to build, run, and explain as a project |
 | D2 | Shared database, shared schema, `tenant_id` on every row | Cheapest multi-tenancy model; isolation enforced in code and tests |
 | D3 | The app includes a demo SaaS layer (users, login, sessions) | ATO protection needs real logins to protect |
 | D4 | Email delivery is simulated (`notifications` table) | No SMTP or AWS SES needed locally |

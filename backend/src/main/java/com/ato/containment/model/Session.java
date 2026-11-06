@@ -24,8 +24,8 @@ import java.util.UUID;
  * reasoning as never storing a plaintext password.
  *
  * {@code tenantId} is stored directly here (not just reachable through
- * {@code user.getTenant()}), matching the session metadata this phase asks
- * for and making tenant-scoped session queries simple.
+ * {@code user.getTenant()}), matching the session metadata and making
+ * tenant-scoped session queries simple.
  */
 @Entity
 @Table(name = "sessions")
